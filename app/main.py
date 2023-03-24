@@ -65,6 +65,7 @@ class SearchAndAddFrame(ctk.CTkFrame):
         pass
 
     def searchAction(self):
+        searchText = self.searchBox.get()
         itemList = [
                         {'text': 'btn1',
                          'type': 'bank',
@@ -87,7 +88,7 @@ class ItemListFrame(ctk.CTkScrollableFrame):
     def deleteItemList(self):
         for buttonItem in self.buttonItemList:
             buttonItem.pack_forget()
-            #buttonItem.destory()
+            buttonItem.destroy()
         self.buttonItemList = []
 
     def addItemList(self, itemList):
