@@ -17,11 +17,11 @@ class Window(ctk.CTk):
         self.grid_columnconfigure(1, weight=3)
         # place the frames in the grid
         self.searchFrame = SearchAndAddFrame(parent=self, height=0, width=0)
-        self.searchFrame.grid(row=0, column=0, rowspan=1, columnspan=1, sticky='nsew', padx=7, pady=7)
+        self.searchFrame.grid(row=0, column=0, rowspan=1, columnspan=1, sticky='nsew', padx=8, pady=8)
         self.itemListFrame = ItemListFrame(parent=self, height=0, width=0)
-        self.itemListFrame.grid(row=1, column=0, rowspan=1, columnspan=1, sticky='nsew', padx=7, pady=7)
+        self.itemListFrame.grid(row=1, column=0, rowspan=1, columnspan=1, sticky='nsew', padx=8, pady=8)
         self.itemInfoFrame = ItemInformationFrame(parent=self, height=0, width=0)
-        self.itemInfoFrame.grid(row=0, column=1, rowspan=2, columnspan=1, sticky='nsew', padx=7, pady=7)
+        self.itemInfoFrame.grid(row=0, column=1, rowspan=2, columnspan=1, sticky='nsew', padx=8, pady=8)
 
 
 
@@ -59,7 +59,8 @@ class SearchAndAddFrame(ctk.CTkFrame):
                                           text='',
                                           width=50,
                                           height=0,
-                                          fg_color='transparent',
+                                          fg_color='#0074ff',
+                                          hover_color='#002450',
                                           command=self.searchAction)
         self.searchButton.pack(side='right', fill='y')
 
@@ -469,5 +470,7 @@ class AddNewEntryToplevel(ctk.CTkToplevel):
 
 if __name__ == "__main__":
     ctk.set_appearance_mode("dark")
+    ctk.set_widget_scaling(1.1)
+    ctk.set_window_scaling(1.0)
     app = Window()
     app.mainloop()
