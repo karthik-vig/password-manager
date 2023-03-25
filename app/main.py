@@ -241,7 +241,8 @@ class AddNewEntryToplevel(ctk.CTkToplevel):
                         columnspan=1,
                         )
         fileButton = ctk.CTkButton(self,
-                                    text='Choose File...')
+                                    text='Choose File...',
+                                    command=self.chooseFile)
         fileButton.grid(row=7,
                         column=1,
                         rowspan=1,
@@ -273,10 +274,18 @@ class AddNewEntryToplevel(ctk.CTkToplevel):
     def getSelectBoxValue(self, value):
         print(value)
 
+    # choose file to add to the new entry
+    def chooseFile(self):
+        file = ctk.filedialog.askopenfile(parent=self, mode='rb', initialdir='/')
+        if file:
+            print(file.name.split('/')[-1])
+            print(file.read())
+
     # the action to create a new database entry based on the entered values
     def addAction(self):
         print('add action')
         self.destroy()
+
 
 if __name__ == "__main__":
     ctk.set_appearance_mode("dark")
