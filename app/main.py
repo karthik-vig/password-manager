@@ -24,6 +24,7 @@ class Window(ctk.CTk):
         self.itemInfoFrame.grid(row=0, column=1, rowspan=2, columnspan=1, sticky='nsew', padx=7, pady=7)
 
 
+
 # The frame that contains the add button, search box and the search button
 class SearchAndAddFrame(ctk.CTkFrame):
     def __init__(self, parent, **kwargs):
@@ -36,10 +37,11 @@ class SearchAndAddFrame(ctk.CTkFrame):
         self.addButton  = ctk.CTkButton(self,
                                         image=addImg,
                                         text='',
-                                        width=0,
+                                        width=50,
                                         height=0,
                                         anchor='center',
-                                        fg_color='transparent',
+                                        fg_color='green',
+                                        hover_color='#125200',
                                         command=self.addAction)
         self.addButton.pack(side='left',fill='y')
         # add the search box
@@ -55,7 +57,7 @@ class SearchAndAddFrame(ctk.CTkFrame):
         self.searchButton = ctk.CTkButton(self,
                                           image=searchImg,
                                           text='',
-                                          width=0,
+                                          width=50,
                                           height=0,
                                           fg_color='transparent',
                                           command=self.searchAction)
@@ -78,6 +80,7 @@ class SearchAndAddFrame(ctk.CTkFrame):
                     ]
         self.parent.itemListFrame.deleteItemList()
         self.parent.itemListFrame.addItemList(itemList=itemList)
+
 
 
 # A scrollable frame that contains the list of buttons to show the values of a given entry
@@ -116,12 +119,186 @@ class ItemListFrame(ctk.CTkScrollableFrame):
     def getEntryDetail(self, id):
         print(id)
 
+
+
 # The frame that contains entries and labels to show the information about an entry.
 # Also allows to delete or modify an entry.
 class ItemInformationFrame(ctk.CTkFrame):
     def __init__(self, parent, **kwargs):
         super().__init__(parent, **kwargs)
-        pass
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=7)
+        for idx in  range(9):
+            self.grid_rowconfigure(idx, weight=1)
+        self.grid_rowconfigure(6, weight=4)
+        # add text entry type widgets and it's labels
+        fieldNameList = ['Entry Name',
+                        'Username',
+                        'Password',
+                        'E-Mail',
+                        'URL',
+                        ]
+        self.fieldDict = {}
+        for row, fieldName in enumerate(fieldNameList):
+            label = ctk.CTkLabel(self, 
+                                text=f"{fieldName}: ",
+                                height=40,
+                                width=0)
+            label.grid(row=row,
+                        column=0,
+                        rowspan=1,
+                        columnspan=1,
+                        )
+            entry = ctk.CTkEntry(self,
+                                height=40,
+                                width=0)
+            entry.grid(row=row,
+                        column=1,
+                        rowspan=1,
+                        columnspan=1,
+                        sticky='ew',
+                        padx=5,
+                        )
+            # add the create label and widget to a dict datastructure to keep track off
+            field = {"label": label,
+                     "entry": entry
+                     }
+            self.fieldDict[f"{fieldName}"] = field
+        # add label and widget for selecting type of entry
+        self.entryTypeList = ['Choose...',
+                                'Bank',
+                                'Communication',
+                                'Email',
+                                'Entertainment',
+                                'Games',
+                                'General',
+                                'Government',
+                                'Office',
+                                'Personal',
+                                'Shopping',
+                                'Streaming',
+                                'Study',
+                                'Transport'
+                                ]
+        typeLabel = ctk.CTkLabel(self, 
+                                text='Type: ',
+                                height=40,
+                                width=0
+                                )
+        typeLabel.grid(row=5,
+                        column=0,
+                        rowspan=1,
+                        columnspan=1,
+                        sticky='ns')
+        typeSelectBox = ctk.CTkComboBox(self,
+                                        values=self.entryTypeList,
+                                        #variable=self.entryTypeValue,
+                                        state='readonly',
+                                        #command=self.getSelectBoxValue
+                                        )
+        typeSelectBox.set('Choose...')
+        typeSelectBox.grid(row=5,
+                        column=1,
+                        rowspan=1,
+                        columnspan=1,
+                        sticky='w',
+                        padx=5,
+                        )
+        # add label and widget for notes textbox
+        notesLabel = ctk.CTkLabel(self, 
+                                text='Notes: ',
+                                height=40,
+                                width=0
+                                )
+        notesLabel.grid(row=6,
+                        column=0,
+                        rowspan=1,
+                        columnspan=1,
+                        sticky='n')
+        notesEntry = ctk.CTkTextbox(self)
+        notesEntry.grid(row=6,
+                        column=1,
+                        rowspan=1,
+                        columnspan=1,
+                        sticky='nsew',
+                        padx=5,
+                        )
+        # add label and widget for choosing file to add with entry
+        fileLabel = ctk.CTkLabel(self, 
+                                text='File: ',
+                                height=40,
+                                width=0
+                                )
+        fileLabel.grid(row=7,
+                        column=0,
+                        rowspan=1,
+                        columnspan=1,
+                        )
+        fileButton = ctk.CTkButton(self,
+                                    text='Save File as ...',
+                                    command=self.saveFile
+                                    )
+        fileButton.grid(row=7,
+                        column=1,
+                        rowspan=1,
+                        columnspan=1,
+                        sticky='w')
+        # add the button to submit the modified details into the database
+        addButton = ctk.CTkButton(self,
+                                  text='Modify',
+                                  fg_color='green',
+                                  hover_color='#125200',
+                                  command=self.modifyAction
+                                  )
+        addButton.grid(row=8,
+                        column=1,
+                        rowspan=1,
+                        columnspan=1,
+                        sticky='w')
+        # the button to delete the entry
+        addButton = ctk.CTkButton(self,
+                                  text='Delete',
+                                  fg_color='red',
+                                  hover_color='#620000',
+                                  command=self.deleteAction
+                                  )
+        addButton.grid(row=8,
+                        column=1,
+                        rowspan=1,
+                        columnspan=1,
+                        sticky='e')
+        # add the labels and widgets into a dict data structure; to keep track of them
+        self.fieldDict['Type'] = {'label': typeLabel,
+                                  'entry': typeSelectBox
+                                 }
+        self.fieldDict['Notes'] = {'label': notesLabel,
+                                   'entry': notesEntry
+                                   }
+        self.fieldDict['File'] = {'label': fileLabel,
+                                  'entry': fileButton
+                                  }
+        self.fieldDict['AddButton'] = {'label': None,
+                                       'entry': addButton
+                                      }
+
+    def saveFile(self):
+        filename = 'hello world.txt'
+        filedata = b'bytes data'
+        filext = '.' + filename.split('.')[-1]
+        fileLink = ctk.filedialog.asksaveasfile(parent=self, mode='wb', initialdir='/', defaultextension=filext)
+        if fileLink:
+            fileLink.write(filedata)
+            fileLink.close()
+
+    def setAllEntryValue(self, entryValues):
+        self.fieldDict['Type']['entry'].set(entryValues['Type'])
+
+    def modifyAction(self):
+        print('modify action')
+
+    def deleteAction(self):
+        print('delete action')
+
 
 
 # The top-level window to enter the details for a new entry
@@ -251,6 +428,8 @@ class AddNewEntryToplevel(ctk.CTkToplevel):
         # add the button to submit the details into the database
         addButton = ctk.CTkButton(self,
                                   text='Add',
+                                  fg_color='green',
+                                  hover_color='#125200',
                                   command=self.addAction)
         addButton.grid(row=8,
                         column=1,
@@ -285,6 +464,7 @@ class AddNewEntryToplevel(ctk.CTkToplevel):
     def addAction(self):
         print('add action')
         self.destroy()
+
 
 
 if __name__ == "__main__":
