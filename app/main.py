@@ -8,8 +8,25 @@ from functools import partial
 class Window(ctk.CTk):
     def __init__(self):
         super().__init__()
-        self.geometry("1200x800")
         self.title("Password Manager")
+        self.drawPasswordAuth()
+
+    # draws the password input and submission window
+    # upon authetication; will draw the content window
+    def drawPasswordAuth(self):
+        self.geometry("400x150")
+        self.resizable(False, False)
+        # configure the rows and column sizes
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+        # place the frames in the grid
+        self.passwordAuthFrame = PasswordAuthFrame(parent=self, height=100, width=200)
+        self.passwordAuthFrame.grid(row=0, column=0, rowspan=1, columnspan=1, sticky='nsew')
+
+    # draws the content window with search options and other operations
+    def drawContent(self):
+        self.resizable(True, True)
+        self.geometry("1200x800")
         # configure the rows and column sizes
         self.grid_rowconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=24)
@@ -22,6 +39,58 @@ class Window(ctk.CTk):
         self.itemListFrame.grid(row=1, column=0, rowspan=1, columnspan=1, sticky='nsew', padx=8, pady=8)
         self.itemInfoFrame = ItemInformationFrame(parent=self, height=0, width=0)
         self.itemInfoFrame.grid(row=0, column=1, rowspan=2, columnspan=1, sticky='nsew', padx=8, pady=8)
+
+
+# The frame for the password input and authentication
+class PasswordAuthFrame(ctk.CTkFrame):
+    def __init__(self, parent, **kwargs):
+        super().__init__(parent, **kwargs)
+        self.parent = parent
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=3)
+        # create and place the label in the grid
+        self.passwordLabel = ctk.CTkLabel(self,
+                                          text="Enter Password: "
+                                          )
+        self.passwordLabel.grid(row=0,
+                                column=0,
+                                rowspan=1,
+                                columnspan=1,
+                                sticky='nsew'
+                                )
+        # create and place the password entry box in the grid
+        self.passwrodEntry = ctk.CTkEntry(self,
+                                          height=10,
+                                          width=0
+                                          )
+        self.passwrodEntry.grid(row=0,
+                                column=1,
+                                rowspan=1,
+                                columnspan=1,
+                                sticky='we'
+                                )
+        # create and place the password submit button in the grid
+        self.enterPasswordButton = ctk.CTkButton(self,
+                                                 text='Submit',
+                                                 anchor='center',
+                                                fg_color='green',
+                                                hover_color='#125200',
+                                                command=self.submitPassword
+                                                )
+        self.enterPasswordButton.grid(row=1,
+                                      column=1,
+                                      rowspan=1,
+                                      columnspan=1,
+                                      sticky='w'
+                                      )
+    # Authenticates the password and then draws the content window
+    def submitPassword(self):
+        print(self.passwrodEntry.get())
+        self.parent.passwordAuthFrame.grid_forget()
+        self.parent.drawContent()
+                                        
 
 
 
