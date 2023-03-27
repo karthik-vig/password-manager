@@ -31,14 +31,16 @@ class Window(ctk.CTk):
         self.grid_rowconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=24)
         self.grid_columnconfigure(0, weight=1)
-        self.grid_columnconfigure(1, weight=3)
+        self.grid_columnconfigure(1, weight=2)
         # place the frames in the grid
-        self.searchFrame = SearchAndAddFrame(parent=self, height=0, width=0)
-        self.searchFrame.grid(row=0, column=0, rowspan=1, columnspan=1, sticky='nsew', padx=8, pady=8)
+        self.searchFrame = SearchFrame(parent=self, height=0, width=0)
+        self.searchFrame.grid(row=0, column=0, rowspan=1, columnspan=1, sticky='nsew', padx=5, pady=8)
+        self.ribbonFrame = RibbonFrame(parent=self, height=0, width=0)
+        self.ribbonFrame.grid(row=0, column=1, rowspan=1, columnspan=1, sticky='nsew', padx=5, pady=8)
         self.itemListFrame = ItemListFrame(parent=self, height=0, width=0)
-        self.itemListFrame.grid(row=1, column=0, rowspan=1, columnspan=1, sticky='nsew', padx=8, pady=8)
+        self.itemListFrame.grid(row=1, column=0, rowspan=1, columnspan=1, sticky='nsew', padx=5, pady=8)
         self.itemInfoFrame = ItemInformationFrame(parent=self, height=0, width=0)
-        self.itemInfoFrame.grid(row=0, column=1, rowspan=2, columnspan=1, sticky='nsew', padx=8, pady=8)
+        self.itemInfoFrame.grid(row=1, column=1, rowspan=1, columnspan=1, sticky='nsew', padx=5, pady=8)
 
 
 # The frame for the password input and authentication
@@ -95,24 +97,10 @@ class PasswordAuthFrame(ctk.CTkFrame):
 
 
 # The frame that contains the add button, search box and the search button
-class SearchAndAddFrame(ctk.CTkFrame):
+class SearchFrame(ctk.CTkFrame):
     def __init__(self, parent, **kwargs):
         super().__init__(parent, **kwargs)
         self.parent = parent
-        # add the add new entry button
-        addImg = ctk.CTkImage(dark_image=Image.open('icons/buttonIcon/add.png'),
-                              size=(20, 20)
-                              )
-        self.addButton  = ctk.CTkButton(self,
-                                        image=addImg,
-                                        text='',
-                                        width=50,
-                                        height=0,
-                                        anchor='center',
-                                        fg_color='green',
-                                        hover_color='#125200',
-                                        command=self.addAction)
-        self.addButton.pack(side='left',fill='y')
         # add the search box
         self.searchBox = ctk.CTkEntry(self,
                                       placeholder_text='Search...',
@@ -133,10 +121,6 @@ class SearchAndAddFrame(ctk.CTkFrame):
                                           command=self.searchAction)
         self.searchButton.pack(side='right', fill='y')
 
-    # Create a new top-level windows to enter new entry details
-    def addAction(self):
-        self.addNewEntry = AddNewEntryToplevel(parent=self)
-
     # get data from the database using the string value in the search box
     def searchAction(self):
         searchText = self.searchBox.get()
@@ -150,6 +134,31 @@ class SearchAndAddFrame(ctk.CTkFrame):
                     ]
         self.parent.itemListFrame.deleteItemList()
         self.parent.itemListFrame.addItemList(itemList=itemList)
+
+
+
+# the frame that contains additional functionality and buttons for the app
+class RibbonFrame(ctk.CTkFrame):
+    def __init__(self, parent, **kwargs):
+        super().__init__(parent, **kwargs)
+        # add the add new entry button
+        addImg = ctk.CTkImage(dark_image=Image.open('icons/buttonIcon/add.png'),
+                              size=(20, 20)
+                              )
+        self.addButton  = ctk.CTkButton(self,
+                                        image=addImg,
+                                        text='',
+                                        width=50,
+                                        height=0,
+                                        anchor='center',
+                                        fg_color='green',
+                                        hover_color='#125200',
+                                        command=self.addAction)
+        self.addButton.pack(side='top', fill='y', expand=True)
+
+    # Create a new top-level windows to enter new entry details
+    def addAction(self):
+        self.addNewEntry = AddNewEntryToplevel(parent=self)
 
 
 
