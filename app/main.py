@@ -185,8 +185,8 @@ class SearchFrame(ctk.CTkFrame):
     def searchAction(self):
         searchText = self.searchBox.get()
         itemList = [
-                        {'text': 'btn1',
-                         'type': 'bank',
+                        {'entryName': 'btn1',
+                         'entryType': 'bank',
                          'id': 1},
                         {'text': 'btn2',
                          'type': 'email',
@@ -471,10 +471,10 @@ class ItemListFrame(ctk.CTkScrollableFrame):
                                size=(30, 30)
                               )
             '''
-            entryTypeImg = iconObj.entryTypeImgDict[item['type'].lower()]
+            entryTypeImg = iconObj.entryTypeImgDict[item['entryType'].lower()]
             buttonCallback = partial(self.getEntryDetail, item['id'])
             button = ctk.CTkButton(self,
-                                   text=item['text'],
+                                   text=item['entryName'],
                                    image=entryTypeImg,
                                    compound='left', 
                                    anchor='w', 
