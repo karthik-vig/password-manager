@@ -2,6 +2,7 @@ import tkinter as tk
 import customtkinter as ctk
 from PIL import Image
 from functools import partial
+from database import DatabaseHandler
 
 
 
@@ -58,9 +59,10 @@ class Icons:
 
 # The main app window
 class Window(ctk.CTk):
-    def __init__(self, iconObj):
+    def __init__(self):
         super().__init__()
-        self.iconObj = iconObj
+        self.iconObj = Icons()
+        self.databaseHandlerObj = None
         self.title("Password Manager")
         self.drawPasswordAuth()
 
@@ -121,11 +123,11 @@ class PasswordAuthFrame(ctk.CTkFrame):
                                 sticky='nsew'
                                 )
         # create and place the password entry box in the grid
-        self.passwrodEntry = ctk.CTkEntry(self,
+        self.passwordEntry = ctk.CTkEntry(self,
                                           height=10,
                                           width=0
                                           )
-        self.passwrodEntry.grid(row=0,
+        self.passwordEntry.grid(row=0,
                                 column=1,
                                 rowspan=1,
                                 columnspan=1,
@@ -147,7 +149,8 @@ class PasswordAuthFrame(ctk.CTkFrame):
                                       )
     # Authenticates the password and then draws the content window
     def submitPassword(self):
-        print(self.passwrodEntry.get())
+        password = self.passwordEntry.get()
+        self.parent.databaseHandlerObj = DatabaseHandler(password=password)
         self.parent.passwordAuthFrame.grid_forget()
         self.parent.drawContent()
                                         
@@ -840,6 +843,5 @@ if __name__ == "__main__":
     ctk.set_appearance_mode("dark")
     ctk.set_widget_scaling(1.1)
     ctk.set_window_scaling(1.0)
-    iconObj = Icons()
-    app = Window(iconObj  = iconObj)
+    app = Window()
     app.mainloop()
