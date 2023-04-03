@@ -23,15 +23,12 @@ class Icons:
         self.resetImg = ctk.CTkImage(dark_image=Image.open('icons/buttonIcon/reset.png'),
                                     size=(20, 20)
                                     )
-        self.newEntryImg = ctk.CTkImage(dark_image=Image.open('icons/buttonIcon/newEntry.png'),
+        self.saveFileImg = ctk.CTkImage(dark_image=Image.open('icons/buttonIcon/saveFile.png'),
                                         size=(20, 20)
                                         )
-        self.deleteEntryImg = ctk.CTkImage(dark_image=Image.open('icons/buttonIcon/deleteEntry.png'),
-                                            size=(20, 20)
-                                            )
-        self.updateEntryImg = ctk.CTkImage(dark_image=Image.open('icons/buttonIcon/updateEntry.png'),
-                                           size=(20, 20)
-                                           )
+        self.syncEntryImg = ctk.CTkImage(dark_image=Image.open('icons/buttonIcon/syncEntry.png'),
+                                        size=(20, 20)
+                                        )
 
     # gets and sets the entry type icons
     def getEntryTypeIcons(self):
@@ -150,7 +147,7 @@ class PasswordAuthFrame(ctk.CTkFrame):
     # Authenticates the password and then draws the content window
     def submitPassword(self):
         password = self.passwordEntry.get()
-        self.parent.databaseHandlerObj = DatabaseHandler(password=password)
+        #self.parent.databaseHandlerObj = DatabaseHandler(password=password)
         self.parent.passwordAuthFrame.grid_forget()
         self.parent.drawContent()
                                         
@@ -191,8 +188,8 @@ class SearchFrame(ctk.CTkFrame):
                         {'entryName': 'btn1',
                          'entryType': 'bank',
                          'id': 1},
-                        {'text': 'btn2',
-                         'type': 'email',
+                        {'entryName': 'btn2',
+                         'entryType': 'email',
                          'id': 2},
                     ]
         self.parent.itemListFrame.deleteItemList()
@@ -205,11 +202,6 @@ class RibbonFrame(ctk.CTkFrame):
     def __init__(self, parent, iconObj, **kwargs):
         super().__init__(parent, **kwargs)
         # add the add new entry button
-        '''
-        addImg = ctk.CTkImage(dark_image=Image.open('icons/buttonIcon/add.png'),
-                              size=(20, 20)
-                              )
-        '''
         self.addButton  = ctk.CTkButton(self,
                                         image=iconObj.addImg,
                                         text='',
@@ -221,11 +213,6 @@ class RibbonFrame(ctk.CTkFrame):
                                         command=self.addAction)
         self.addButton.pack(side='left', fill='y', expand=True, padx=2, pady=5)
         # add a reset password button
-        '''
-        resetImg = ctk.CTkImage(dark_image=Image.open('icons/buttonIcon/reset.png'),
-                                size=(20, 20)
-                                )
-        '''
         self.resetPasswordButton = ctk.CTkButton(self,
                                                  image=iconObj.resetImg,
                                                  text='',
@@ -236,12 +223,20 @@ class RibbonFrame(ctk.CTkFrame):
                                                  hover_color='#353a3d',
                                                  command=self.resetPassword)
         self.resetPasswordButton.pack(side='left', fill='y', expand=True, padx=2, pady=5)
-        # add the frame for push sync
-        self.pushSyncFrame = PushSyncFrame(parent=self, iconObj=iconObj)
-        self.pushSyncFrame.pack(side='left', fill='y', expand=True, padx=2, pady=5, ipadx=20)
-        # add the frame for pull sync
-        self.pullSyncFrame = PullSyncFrame(parent=self, iconObj=iconObj)
-        self.pullSyncFrame.pack(side='left', fill='y', expand=True, padx=2, pady=5, ipadx=20)
+        # the save button to push changes into presistent database
+        self.saveButton = ctk.CTkButton(self,
+                                        image=iconObj.saveFileImg,
+                                        text='',
+                                        width=50,
+                                        height=0,
+                                        anchor='center',
+                                        fg_color='#585f63',
+                                        hover_color='#353a3d',
+                                        command=self.saveDatabase)
+        self.saveButton.pack(side='left', fill='y', expand=True, padx=2, pady=5)
+        # the sync frame
+        self.syncFrame = SyncFrame(parent=self, iconObj=iconObj)
+        self.syncFrame.pack(side='left', fill='y', expand=True, padx=2, pady=5, ipadx=20)
 
     # Create a new top-level windows to enter new entry details
     def addAction(self):
@@ -252,120 +247,70 @@ class RibbonFrame(ctk.CTkFrame):
         print('reset pass')
         self.resetPassFrame = ResetPasswordFrame(parent=self)
 
+    # save memory database for presistent database action
+    def saveDatabase(self):
+        print('save database') 
 
 
 
-# push sync class, used to push the current state
-# of the internal database onto the external database
-class PushSyncFrame(ctk.CTkFrame):
+# the frame for syncing with external database
+class SyncFrame(ctk.CTkFrame):
     def __init__(self, parent, iconObj, **kwargs):
         super().__init__(parent, **kwargs)
-        # the label frame
-        self.pushSyncLable = ctk.CTkLabel(self,
-                                          text='Push-Sync: ')
-        self.pushSyncLable.pack(side='left')
-        # the new entry button
-        self.newEntryButton = ctk.CTkButton(self,
-                                            text='',
-                                            image=iconObj.newEntryImg,
-                                            anchor='center',
-                                            width=50,
-                                            height=0,
-                                            command=self.setNewEntry
-                                            )
-        self.newEntryButton.pack(side='left', fill='y', expand=True)
-        # the delte entry button
-        self.newEntryButton = ctk.CTkButton(self,
-                                            text='',
-                                            image=iconObj.deleteEntryImg,
-                                            anchor='center',
-                                            width=50,
-                                            height=0,
-                                            command=self.deleteExternalDBEntry
-                                            )
-        self.newEntryButton.pack(side='left', fill='y', expand=True)
-        # the update modifications button
-        self.newEntryButton = ctk.CTkButton(self,
-                                            text='',
-                                            image=iconObj.updateEntryImg,
-                                            anchor='center',
-                                            width=50,
-                                            height=0,
-                                            command=self.updateExternalDatabaseEntry
-                                            )
-        self.newEntryButton.pack(side='left', fill='y', expand=True)
+        # the variable that records the current selected operation
+        self.operation = 'export'
+        # the radio button to choose export sync option
+        self.exportRadioButton = ctk.CTkRadioButton(self,
+                                                    text='Export',
+                                                    command=self.unckeckImportRadioButton)
+        self.exportRadioButton.select()
+        self.exportRadioButton.pack(side='left')
+        # the radio button to choose import sync option
+        self.importRadioButton = ctk.CTkRadioButton(self,
+                                                    text='Import',
+                                                    command=self.unckeckExportRadioButton)
+        self.importRadioButton.deselect()
+        self.importRadioButton.pack(side='left')
+        # combo box to select the operaton mode
+        self.operationModes = ['Choose...', 
+                                'Add New Entries', 
+                                'Delete Missing Entries', 
+                                'Conform Modified Entries'
+                                ]
+        self.selectOperationMode = ctk.CTkComboBox(self,
+                                                    values=self.operationModes,
+                                                    state='readonly',
+                                                    width=200,
+                                                    command=self.setOperationMode
+                                                    )
+        self.selectOperationMode.set('Choose...')
+        self.selectOperationMode.pack(side='left')
+        # button to call on the sync operation
+        self.syncButton = ctk.CTkButton(self,
+                                        text='',
+                                        image=iconObj.syncEntryImg,
+                                        anchor='center',
+                                        width=50,
+                                        height=0,
+                                        command=self.syncAction
+                                        )
+        self.syncButton.pack(side='left', fill='y', expand=True)
 
-    # the action to set new entries in the internal database 
-    # onto the external database
-    def setNewEntry(self):
-        print('setting new entries in the external database')
-    
-    # the action to delete new entries in the external database 
-    # not in the internal database
-    def deleteExternalDBEntry(self):
-        print('deletting external db entry not in the internal database')
-    
-    # the action to make the rows in the external database conform
-    # according to the internal database
-    def updateExternalDatabaseEntry(self):
-        print('updating external database to conform to internal database')
+    #
+    def unckeckImportRadioButton(self):
+        self.importRadioButton.deselect()
+        self.operation = 'export'
+ 
+    def unckeckExportRadioButton(self):
+        self.exportRadioButton.deselect()
+        self.operation = 'import'
 
+    def setOperationMode(self, operationMode):
+        print(operationMode)
 
-    
-# pull sync class, used to pull the current state
-# of the external database onto the internal database
-class PullSyncFrame(ctk.CTkFrame):
-    def __init__(self, parent, iconObj, **kwargs):
-        super().__init__(parent, **kwargs)
-        # the label frame
-        self.pushSyncLable = ctk.CTkLabel(self,
-                                          text='Pull-Sync: ')
-        self.pushSyncLable.pack(side='left')
-        # the new entry button
-        self.newEntryButton = ctk.CTkButton(self,
-                                            text='',
-                                            image=iconObj.newEntryImg,
-                                            anchor='center',
-                                            width=50,
-                                            height=0,
-                                            command=self.setNewEntry
-                                            )
-        self.newEntryButton.pack(side='left', fill='y', expand=True)
-        # the delte entry button
-        self.newEntryButton = ctk.CTkButton(self,
-                                            text='',
-                                            image=iconObj.deleteEntryImg,
-                                            anchor='center',
-                                            width=50,
-                                            height=0,
-                                            command=self.deleteInternalDBEntry
-                                            )
-        self.newEntryButton.pack(side='left', fill='y', expand=True)
-        # the update modifications button
-        self.newEntryButton = ctk.CTkButton(self,
-                                            text='',
-                                            image=iconObj.updateEntryImg,
-                                            anchor='center',
-                                            width=50,
-                                            height=0,
-                                            command=self.updateInternalDatabaseEntry
-                                            )
-        self.newEntryButton.pack(side='left', fill='y', expand=True)
+    def syncAction(self):
+        print('called the sync action')
 
-    # the action to set new entries in the external database 
-    # onto the internal database
-    def setNewEntry(self):
-        print('setting new entries in the internal database')
-    
-    # the action to delete new entries in the internal database 
-    # not in the external database
-    def deleteInternalDBEntry(self):
-        print('deletting internal db entry not in the exteranl database')
-    
-    # the action to make the rows in the internal database conform
-    # according to the external database
-    def updateInternalDatabaseEntry(self):
-        print('updating internal database to conform to external database')
 
 
 
@@ -456,6 +401,7 @@ class ResetPasswordFrame(ctk.CTkToplevel):
 class ItemListFrame(ctk.CTkScrollableFrame):
     def __init__(self, parent, iconObj, **kwargs):
         super().__init__(parent, **kwargs)
+        self.iconObj = iconObj
         self.parent = parent
         self.buttonItemList = []
         
@@ -474,7 +420,7 @@ class ItemListFrame(ctk.CTkScrollableFrame):
                                size=(30, 30)
                               )
             '''
-            entryTypeImg = iconObj.entryTypeImgDict[item['entryType'].lower()]
+            entryTypeImg = self.iconObj.entryTypeImgDict[item['entryType'].lower()]
             buttonCallback = partial(self.getEntryDetail, item['id'])
             button = ctk.CTkButton(self,
                                    text=item['entryName'],

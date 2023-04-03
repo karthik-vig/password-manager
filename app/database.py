@@ -1,6 +1,25 @@
 from sqlalchemy import create_engine, Column, Integer, String, update, or_, ForeignKey, LargeBinary
 from sqlalchemy.orm import Session, registry, relationship
 import uuid
+import os
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+
+
+
+# handles all cryptographic functionalities
+class CryptographyHandler:
+    def __init__(self, password):
+        self.encryptor, self.decryptor = self._initCryptography(password)
+
+    def _initCryptography(self, password):
+        key = os.urandom(32)
+        initVec = os.urandom(16)
+        cryptAlg = algorithms.AES256( key )
+        cipher = Cipher(cryptAlg, modes.CBC(initVec))
+        encryptor = cipher.encryptor()
+        decryptor = cipher.decryptor()
+        return encryptor, decryptor
+
 
 
 
@@ -9,15 +28,44 @@ import uuid
 class DatabaseHandler:
     # connect to the database and create registry, base and tables
     def __init__(self, password):
-        self.engine = create_engine(f"sqlite+pysqlcipher://:{password}@/test.db?cipher=aes-256-cfb&kdf_iter=64000")
-        self.registryMapper = registry()
-        self.Base = self.registryMapper.generate_base()
-        self.LoginInfo, self.FileInfo = self._createTables()
-        self.registryMapper.metadata.create_all(self.engine)
+        cryptObj = CryptographyHandler(password=password)
+        #print(type(self.encryptor(b'hello world')))
+        self._connectPersistentDB()
+        self._connectMemoryDB()
+
+    def _connectMemoryDB(self):
+        self.memoryDBEngine = create_engine("sqlite+pysqlite:///:memory:")
+        self.memoryDBRegistryMapper = registry()
+        self.memoryDBBase = self.memoryDBRegistryMapper.generate_base()
+        self.LimitedLoginInfo = self._createMemoryDBTables()
+        self.memoryDBRegistryMapper.metadata.create_all(self.memoryDBEngine)
+
+    def _createMemoryDBTables(self):
+        class LimitedLoginInfo(self.memoryDBBase):
+            __tablename__ = "LimitedLoginInfo"
+            id = Column(Integer, primary_key=True, autoincrement=False)
+            entryName = Column(String(50), nullable=False)
+            userName = Column(String(100), nullable=True)
+            email = Column(String(100), nullable=True)
+            url = Column(String(500), nullable=True)
+            notes = Column(String(20_000), nullable=True)
+            entryType = Column(String(20), nullable=False)
+            fileName = Column(String(100), nullable=True)
+            uniqueID = Column(String(36), nullable=False)
+            def __repr__(self):
+                return f"Table for recording all login entry information"
+        return LimitedLoginInfo
+
+    def _connectPersistentDB(self):
+        self.persistentDBEngine = create_engine("sqlite+pysqlite:///test.db")
+        self.persistentDBRegistryMapper = registry()
+        self.persistentDBBase = self.persistentDBRegistryMapper.generate_base()
+        self.LoginInfo, self.FileInfo = self._createPersistentDBTables()
+        self.persistentDBRegistryMapper.metadata.create_all(self.persistentDBEngine)
 
     # create the two tables in the database to store information
-    def _createTables(self):
-        class LoginInfo(self.Base):
+    def _createPersistentDBTables(self):
+        class LoginInfo(self.persistentDBBase):
             __tablename__ = "LoginInfo"
             id = Column(Integer, primary_key=True, autoincrement=True)
             entryName = Column(String(50), nullable=False)
@@ -33,14 +81,13 @@ class DatabaseHandler:
             def __repr__(self):
                 return f"Table for recording all login entry information"
         
-        class FileInfo(self.Base):
+        class FileInfo(self.persistentDBBase):
             __tablename__ = "FileInfo"
             id = Column(Integer, ForeignKey("LoginInfo.id"), primary_key=True)
             fileData = Column(LargeBinary, nullable=True)
             loginInfo = relationship("LoginInfo", back_populates="fileInfo")
             def __repr__(self):
                 return f"Table for recording all file binary information"
-
         return LoginInfo, FileInfo
 
     # add a new entry into the LoginInfo table and FileInfo table
