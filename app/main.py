@@ -2,7 +2,7 @@ import tkinter as tk
 import customtkinter as ctk
 from PIL import Image
 from functools import partial
-from database import DatabaseHandler
+from database import DataFormatter, PresistentDatabaseHandler, MemoryDatabaseHandler, CryptographyHandler
 
 
 
@@ -59,7 +59,10 @@ class Window(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.iconObj = Icons()
-        self.databaseHandlerObj = None
+        self.memDBObj = MemoryDatabaseHandler()
+        self.presistentDBObj = PresistentDatabaseHandler()
+        self.dataFormatterObj = None
+        self.cryptObj = None
         self.title("Password Manager")
         self.drawPasswordAuth()
 
@@ -147,9 +150,38 @@ class PasswordAuthFrame(ctk.CTkFrame):
     # Authenticates the password and then draws the content window
     def submitPassword(self):
         password = self.passwordEntry.get()
-        #self.parent.databaseHandlerObj = DatabaseHandler(password=password)
-        self.parent.passwordAuthFrame.grid_forget()
-        self.parent.drawContent()
+        cryptInfoPrimitiveS = self.parent.presistentDBObj.getCryptInfoRow()
+        if not len(cryptInfoPrimitiveS):
+            self.parent.cryptObj = CryptographyHandler(password)
+            (
+            encryptedKey,
+            encryptKeyIV,
+            generateKeySalt,
+            hashKeySalt,
+            hashedKey ) = self.parent.cryptObj.getCryptValues()
+            self.parent.presistentDBObj.addCryptInfoEntry({'encryptedKey': encryptedKey,
+                                                            'encryptKeyIV': encryptKeyIV,
+                                                            'generateKeySalt': generateKeySalt,
+                                                            'hashKeySalt': hashKeySalt,
+                                                            'hashedKey': hashedKey
+                                                            })
+        else:
+            cryptInfoPrimitiveS = cryptInfoPrimitiveS[0]
+            self.parent.cryptObj = CryptographyHandler(password,
+                                                        cryptInfoPrimitiveS['encryptedKey'],
+                                                        cryptInfoPrimitiveS['encryptKeyIV'],
+                                                        cryptInfoPrimitiveS['generateKeySalt'],
+                                                        cryptInfoPrimitiveS['hashKeySalt'],
+                                                        cryptInfoPrimitiveS['hashedKey'],
+                                                        )
+        self.parent.dataFormatterObj = DataFormatter(self.parent.cryptObj)
+            
+        if not self.parent.cryptObj.getAuthStatus():
+            tk.messagebox.showwarning(title='Authentication Failed',
+                                      message='Authentication Failed, re-enter password')
+        else:
+            self.parent.passwordAuthFrame.grid_forget()
+            self.parent.drawContent()
                                         
 
 
