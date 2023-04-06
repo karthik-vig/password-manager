@@ -38,7 +38,7 @@ class SearchFrame(ctk.CTkFrame):
     # get data from the database using the string value in the search box
     def searchAction(self):
         searchText = self.searchBox.get()
-        itemList = self.objs['memDBObj'].searchLogInfo(searchText)
+        itemList = self.objs['memDBObj'].searchLoginInfo(searchText)
         '''
         itemList = [
                         {'entryName': 'btn1',

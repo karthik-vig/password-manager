@@ -189,7 +189,7 @@ class PresistentDatabaseHandler:
         class UserInfo(self.Base):
             __tablename__ = "UserInfo"
             uniqueID = Column(String(36), primary_key=True)
-            loginInfo = Column(LargeBinary, nullable=True)
+            loginInfo = Column(LargeBinary, nullable=False)
             fileInfo = Column(LargeBinary, nullable=True)
             def __repr__(self):
                 return f"The Table that contains the encrypted binary info."
@@ -373,20 +373,20 @@ class MemoryDatabaseHandler:
     # searches data in login info table to 
     # get id, entryName and entryType
     def searchLoginInfo(self, searchText):
+        searchText = f"%{searchText}%"
         loginInfoResultList = []
         with Session(self.engine) as session:
-            queryStatement = session.query(self.LoginInfo.uniqueID, 
+            loginInfoResult = session.query(self.LoginInfo.uniqueID, 
                                            self.LoginInfo.entryName, 
                                            self.LoginInfo.entryType
                                            ).filter( or_ (
-                                            self.LoginInfo.entryName.like(f"{searchText}"),
-                                            self.LoginInfo.userName.like(f"{searchText}"),
-                                            self.LoginInfo.email.like(f"{searchText}"),
-                                            self.LoginInfo.url.like(f"{searchText}"),
-                                            self.LoginInfo.notes.like(f"{searchText}")
-                                           ) )
-            LoginInfoResult = session.execute(queryStatement)
-            for row in LoginInfoResult:
+                                            self.LoginInfo.entryName.like(searchText),
+                                            self.LoginInfo.userName.like(searchText),
+                                            self.LoginInfo.email.like(searchText),
+                                            self.LoginInfo.url.like(searchText),
+                                            self.LoginInfo.notes.like(searchText)
+                                            ) ).all()
+            for row in loginInfoResult:
                 loginInfoResultList.append(
                     {
                         'id': row[0],
