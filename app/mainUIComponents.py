@@ -138,6 +138,7 @@ class ItemInformationFrame(ctk.CTkFrame):
         self.grid_rowconfigure(6, weight=4)
         self.objs = objs
         self.uniqueID = None
+        self.file = None
         self.filename = None
         self.filedata = None
         # add text entry type widgets and it's labels
@@ -252,26 +253,35 @@ class ItemInformationFrame(ctk.CTkFrame):
                         rowspan=1,
                         columnspan=1,
                         sticky='w')
+        modifyFileButton = ctk.CTkButton(self,
+                                        text='Add New File',
+                                        command=self.addNewFileAction
+                                        )
+        modifyFileButton.grid(row=7,
+                        column=1,
+                        rowspan=1,
+                        columnspan=1,
+                        sticky='e')
         # add the button to submit the modified details into the database
-        addButton = ctk.CTkButton(self,
+        modifyButton = ctk.CTkButton(self,
                                   text='Modify',
                                   fg_color='green',
                                   hover_color='#125200',
                                   command=self.modifyAction
                                   )
-        addButton.grid(row=8,
+        modifyButton.grid(row=8,
                         column=1,
                         rowspan=1,
                         columnspan=1,
                         sticky='w')
         # the button to delete the entry
-        addButton = ctk.CTkButton(self,
+        deleteButton = ctk.CTkButton(self,
                                   text='Delete',
                                   fg_color='red',
                                   hover_color='#620000',
                                   command=self.deleteAction
                                   )
-        addButton.grid(row=8,
+        deleteButton.grid(row=8,
                         column=1,
                         rowspan=1,
                         columnspan=1,
@@ -286,9 +296,22 @@ class ItemInformationFrame(ctk.CTkFrame):
         self.fieldDict['file'] = {'label': fileLabel,
                                   'entry': fileButton
                                   }
-        self.fieldDict['AddButton'] = {'label': None,
-                                       'entry': addButton
+        self.fieldDict['modifyFileButton'] = {'label': None,
+                                               'entry': modifyFileButton
+                                                }
+        self.fieldDict['modifyButton'] = {'label': None,
+                                       'entry': modifyButton
                                       }
+        self.fieldDict['deleteButton'] = {'label': None,
+                                          'entry': deleteButton
+                                            }
+
+    def addNewFileAction(self):
+        self.file = ctk.filedialog.askopenfile(parent=self, mode='rb', initialdir='/')
+        if self.file:
+            self.filename = self.file.name.split('/')[-1][:50]
+            self.filedata = self.file.read()
+            self.fieldDict['file']['entry'].configure(text=f"{self.filename}")
 
     def saveFile(self):
         #filename = 'hello world.txt'
@@ -315,7 +338,9 @@ class ItemInformationFrame(ctk.CTkFrame):
         encryptedFileInfoPrimitive = self.objs['presistentDBObj'].getFileInfoOnUUID(self.uniqueID)[0]
         fileInfoPrimitive = self.objs['cryptObj'].decrypt(encryptedFileInfoPrimitive)
         for key in self.fieldDict.keys():
-            if key != 'AddButton' and\
+            if key != 'modifyButton' and\
+               key != 'deleteButton' and\
+               key != 'modifyFileButton' and\
                key != 'file' and\
                key != 'entryType' and\
                key != 'notes' and\
@@ -326,6 +351,7 @@ class ItemInformationFrame(ctk.CTkFrame):
         self.fieldDict['notes']['entry'].delete('0.0','end')
         self.fieldDict['notes']['entry'].insert('0.0', loginInfoEntry['notes'])
         self.filename = loginInfoEntry['fileName']
+        self.fieldDict['file']['entry'].configure(text=f"{self.filename}")
         self.filedata = fileInfoPrimitive['fileInfo']
 
     def modifyAction(self):
@@ -333,7 +359,9 @@ class ItemInformationFrame(ctk.CTkFrame):
             loginInfoEntry = {}
             loginInfoEntry['uniqueID'] = self.uniqueID
             for key in self.fieldDict.keys():
-                if key != 'AddButton' and\
+                if key != 'modifyButton' and\
+                   key != 'deleteButton' and\
+                   key != 'modifyFileButton' and\
                    key != 'file' and\
                    key != 'notes':
                     loginInfoEntry[key] = self.fieldDict[key]['entry'].get()
