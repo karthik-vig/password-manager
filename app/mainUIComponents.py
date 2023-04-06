@@ -332,6 +332,7 @@ class ItemInformationFrame(ctk.CTkFrame):
                                       message='No file was attached to this entry')
     
     def setAllEntryValue(self, id):
+        self.clearAllEntries()
         loginInfoEntry = self.objs['memDBObj'].getLoginInfoEntryOnID(id)
         #print(loginInfoEntry)
         self.uniqueID = loginInfoEntry['uniqueID']
@@ -345,10 +346,8 @@ class ItemInformationFrame(ctk.CTkFrame):
                key != 'entryType' and\
                key != 'notes' and\
                loginInfoEntry[key] != None:
-                self.fieldDict[key]['entry'].delete("0","end")
                 self.fieldDict[key]['entry'].insert("0", loginInfoEntry[key])
         self.fieldDict['entryType']['entry'].set(loginInfoEntry['entryType'])
-        self.fieldDict['notes']['entry'].delete('0.0','end')
         self.fieldDict['notes']['entry'].insert('0.0', loginInfoEntry['notes'])
         self.filename = loginInfoEntry['fileName']
         self.fieldDict['file']['entry'].configure(text=f"{self.filename}")
@@ -376,7 +375,25 @@ class ItemInformationFrame(ctk.CTkFrame):
             self.objs['presistentDBObj'].updateUserInfoEntry(encryptedUserInfoEntry)
 
     def deleteAction(self):
-        print('delete action')
+        self.objs['presistentDBObj'].deleteUserInfoEntry(self.uniqueID)
+        self.objs['memDBObj'].deleteEntry(self.uniqueID)
+        self.clearAllEntries()
+
+    def clearAllEntries(self):
+        for key in self.fieldDict.keys():
+            if key != 'modifyButton' and\
+               key != 'deleteButton' and\
+               key != 'modifyFileButton' and\
+               key != 'file' and\
+               key != 'entryType' and\
+               key != 'notes':
+                self.fieldDict[key]['entry'].delete("0","end")
+        self.file = None
+        self.filename = None
+        self.filedate = None
+        self.fieldDict['file']['entry'].configure(text='None')
+        self.fieldDict['notes']['entry'].delete('0.0', 'end')
+        self.fieldDict['entryType']['entry'].set('Choose...')
 
 
 
