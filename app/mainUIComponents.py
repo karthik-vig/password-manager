@@ -1,3 +1,4 @@
+import tkinter as tk
 import customtkinter as ctk
 from functools import partial
 from ribbonUIComponents import SyncFrame
@@ -137,6 +138,8 @@ class ItemInformationFrame(ctk.CTkFrame):
         self.grid_rowconfigure(6, weight=4)
         self.objs = objs
         self.uniqueID = None
+        self.filename = None
+        self.filedata = None
         # add text entry type widgets and it's labels
         fieldNameList = ['entryName',
                         'userName',
@@ -288,18 +291,29 @@ class ItemInformationFrame(ctk.CTkFrame):
                                       }
 
     def saveFile(self):
-        filename = 'hello world.txt'
-        filedata = b'bytes data'
-        filext = '.' + filename.split('.')[-1]
-        fileLink = ctk.filedialog.asksaveasfile(parent=self, mode='wb', initialdir='/', defaultextension=filext)
-        if fileLink:
-            fileLink.write(filedata)
-            fileLink.close()
-
+        #filename = 'hello world.txt'
+        #filedata = b'bytes data'
+        if self.filename != None and self.filedata != None:
+            filext = [('All Files', '*.' + self.filename.split('.')[-1]), ]
+            fileLink = ctk.filedialog.asksaveasfile(parent=self, 
+                                                    mode='wb', 
+                                                    initialdir='/', 
+                                                    filetypes=filext,
+                                                    initialfile=self.filename
+                                                    )
+            if fileLink:
+                fileLink.write(self.filedata)
+                fileLink.close()
+        else:
+            tk.messagebox.showwarning(title='No File',
+                                      message='No file was attached to this entry')
+    
     def setAllEntryValue(self, id):
         loginInfoEntry = self.objs['memDBObj'].getLoginInfoEntryOnID(id)
         #print(loginInfoEntry)
         self.uniqueID = loginInfoEntry['uniqueID']
+        encryptedFileInfoPrimitive = self.objs['presistentDBObj'].getFileInfoOnUUID(self.uniqueID)[0]
+        fileInfoPrimitive = self.objs['cryptObj'].decrypt(encryptedFileInfoPrimitive)
         for key in self.fieldDict.keys():
             if key != 'AddButton' and\
                key != 'file' and\
@@ -311,7 +325,8 @@ class ItemInformationFrame(ctk.CTkFrame):
         self.fieldDict['type']['entry'].set(loginInfoEntry['entryType'])
         self.fieldDict['notes']['entry'].delete('0.0','end')
         self.fieldDict['notes']['entry'].insert('0.0', loginInfoEntry['notes'])
-        #self.fieldDict['Type']['entry'].set(entryValues['Type'])
+        self.filename = loginInfoEntry['fileName']
+        self.filedata = fileInfoPrimitive['fileInfo']
 
     def modifyAction(self):
         print('modify action')
