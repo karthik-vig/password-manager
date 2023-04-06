@@ -277,7 +277,7 @@ class ItemInformationFrame(ctk.CTkFrame):
                         columnspan=1,
                         sticky='e')
         # add the labels and widgets into a dict data structure; to keep track of them
-        self.fieldDict['type'] = {'label': typeLabel,
+        self.fieldDict['entryType'] = {'label': typeLabel,
                                   'entry': typeSelectBox
                                  }
         self.fieldDict['notes'] = {'label': notesLabel,
@@ -317,19 +317,35 @@ class ItemInformationFrame(ctk.CTkFrame):
         for key in self.fieldDict.keys():
             if key != 'AddButton' and\
                key != 'file' and\
-               key != 'type' and\
+               key != 'entryType' and\
                key != 'notes' and\
                loginInfoEntry[key] != None:
                 self.fieldDict[key]['entry'].delete("0","end")
                 self.fieldDict[key]['entry'].insert("0", loginInfoEntry[key])
-        self.fieldDict['type']['entry'].set(loginInfoEntry['entryType'])
+        self.fieldDict['entryType']['entry'].set(loginInfoEntry['entryType'])
         self.fieldDict['notes']['entry'].delete('0.0','end')
         self.fieldDict['notes']['entry'].insert('0.0', loginInfoEntry['notes'])
         self.filename = loginInfoEntry['fileName']
         self.filedata = fileInfoPrimitive['fileInfo']
 
     def modifyAction(self):
-        print('modify action')
+        if self.uniqueID != None:
+            loginInfoEntry = {}
+            loginInfoEntry['uniqueID'] = self.uniqueID
+            for key in self.fieldDict.keys():
+                if key != 'AddButton' and\
+                   key != 'file' and\
+                   key != 'notes':
+                    loginInfoEntry[key] = self.fieldDict[key]['entry'].get()
+            loginInfoEntry['notes'] = self.fieldDict['notes']['entry'].get('0.0', 'end')
+            loginInfoEntry['fileName'] = self.filename
+            self.objs['memDBObj'].modifyLoginInfoEntry(loginInfoEntry)
+            loginInfoEntryBytes = self.objs['dataFormatterObj'].convertToBytes(loginInfoEntry)
+            encryptedUserInfoEntry = self.objs['cryptObj'].encrypt({'uniqueID': self.uniqueID,
+                                                                    'loginInfo': loginInfoEntryBytes,
+                                                                    'fileInfo': self.filedata
+                                                                    })
+            self.objs['presistentDBObj'].updateUserInfoEntry(encryptedUserInfoEntry)
 
     def deleteAction(self):
         print('delete action')
