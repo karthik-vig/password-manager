@@ -136,12 +136,13 @@ class ItemInformationFrame(ctk.CTkFrame):
             self.grid_rowconfigure(idx, weight=1)
         self.grid_rowconfigure(6, weight=4)
         self.objs = objs
+        self.uniqueID = None
         # add text entry type widgets and it's labels
-        fieldNameList = ['Entry Name',
-                        'Username',
-                        'Password',
-                        'E-Mail',
-                        'URL',
+        fieldNameList = ['entryName',
+                        'userName',
+                        'password',
+                        'email',
+                        'url',
                         ]
         self.fieldDict = {}
         for row, fieldName in enumerate(fieldNameList):
@@ -273,13 +274,13 @@ class ItemInformationFrame(ctk.CTkFrame):
                         columnspan=1,
                         sticky='e')
         # add the labels and widgets into a dict data structure; to keep track of them
-        self.fieldDict['Type'] = {'label': typeLabel,
+        self.fieldDict['type'] = {'label': typeLabel,
                                   'entry': typeSelectBox
                                  }
-        self.fieldDict['Notes'] = {'label': notesLabel,
+        self.fieldDict['notes'] = {'label': notesLabel,
                                    'entry': notesEntry
                                    }
-        self.fieldDict['File'] = {'label': fileLabel,
+        self.fieldDict['file'] = {'label': fileLabel,
                                   'entry': fileButton
                                   }
         self.fieldDict['AddButton'] = {'label': None,
@@ -295,8 +296,22 @@ class ItemInformationFrame(ctk.CTkFrame):
             fileLink.write(filedata)
             fileLink.close()
 
-    def setAllEntryValue(self, entryValues):
-        self.fieldDict['Type']['entry'].set(entryValues['Type'])
+    def setAllEntryValue(self, id):
+        loginInfoEntry = self.objs['memDBObj'].getLoginInfoEntryOnID(id)
+        #print(loginInfoEntry)
+        self.uniqueID = loginInfoEntry['uniqueID']
+        for key in self.fieldDict.keys():
+            if key != 'AddButton' and\
+               key != 'file' and\
+               key != 'type' and\
+               key != 'notes' and\
+               loginInfoEntry[key] != None:
+                self.fieldDict[key]['entry'].delete("0","end")
+                self.fieldDict[key]['entry'].insert("0", loginInfoEntry[key])
+        self.fieldDict['type']['entry'].set(loginInfoEntry['entryType'])
+        self.fieldDict['notes']['entry'].delete('0.0','end')
+        self.fieldDict['notes']['entry'].insert('0.0', loginInfoEntry['notes'])
+        #self.fieldDict['Type']['entry'].set(entryValues['Type'])
 
     def modifyAction(self):
         print('modify action')
@@ -347,4 +362,4 @@ class ItemListFrame(ctk.CTkScrollableFrame):
 
     # when a button in the list is clicked this function get the entry details from the database
     def getEntryDetail(self, id):
-        print(id)
+        self.parent.itemInfoFrame.setAllEntryValue(id)

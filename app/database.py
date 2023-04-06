@@ -25,9 +25,12 @@ class DataFormatter:
     def convertRowsToListOfDict(self, rows):
         primitiveRows = []
         for row in rows:
+            #print(type(row))
             if str(type(row)) == "<class 'sqlalchemy.engine.row.Row'>":
                 dictFormat = dict(row._mapping)
+                #print(f'this {dictFormat}')
             else:
+                #print(row.__dict__)
                 dictFormat = row.__dict__
                 del dictFormat['_sa_instance_state']
             primitiveRows.append(dictFormat)
@@ -303,6 +306,7 @@ class MemoryDatabaseHandler:
         self.Base = self.registryMapper.generate_base()
         self.LoginInfo = self._createTable()
         self.registryMapper.metadata.create_all(self.engine)
+        self.dataFormatterObj = DataFormatter(None)
 
     # create and/or initializes the necessary table(s)
     def _createTable(self):
@@ -365,10 +369,12 @@ class MemoryDatabaseHandler:
     # get a row from LoginInfo table using a id
     def getLoginInfoEntryOnID(self, uniqueID):
         with Session(self.engine) as session:
-            queryStatement = session.query(self.LoginInfo)\
-                             .filter(self.LoginInfo.uniqueID == uniqueID)
-            loginInfoRow = session.execute(queryStatement).first()[0]
-        return loginInfoRow.mappings()
+            loginInfoRow = session.query(self.LoginInfo)\
+                             .filter(self.LoginInfo.uniqueID == uniqueID).all()
+            #loginInfoRow = session.execute(queryStatement).all()
+            #print(loginInfoRow)
+            loginInfoEntry = self.dataFormatterObj.convertRowsToListOfDict(loginInfoRow)[0]
+        return loginInfoEntry
 
     # searches data in login info table to 
     # get id, entryName and entryType
