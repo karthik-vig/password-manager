@@ -111,8 +111,8 @@ class RibbonFrame(ctk.CTkFrame):
 
     # resets the password of the sqilte database
     def resetPassword(self):
-        print('reset pass')
-        self.resetPassFrame = ResetPasswordToplevel(parent=self)
+        #print('reset pass')
+        self.resetPassFrame = ResetPasswordToplevel(parent=self, objs=self.objs)
 
     # save memory database for presistent database action
     def saveDatabase(self):

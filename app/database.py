@@ -126,6 +126,17 @@ class CryptographyHandler:
             key = None
         return key
 
+    def verifyPassword(self, password):
+        kdf1 = self._setupPBKDF2(self.generateKeySalt)
+        kdf2 = self._setupPBKDF2(self.hashKeySalt)
+        keyToDecryptKey = kdf1.derive(bytes(self.password, encoding='utf-16'))
+        try:
+            kdf2.verify(keyToDecryptKey,
+                       self.hashedKey)
+            return True
+        except cryptography.exceptions.InvalidKey as e:
+            return False
+
     def _setupAESAlg(self, key, initVec): 
         cipher = Cipher(algorithms.AES256( key ), 
                         modes.CBC(initVec)

@@ -80,6 +80,30 @@ class SetPasswordFrame(ctk.CTkFrame):
     def createNewDB(self):
         newPassword = self.newPasswordEntry.get()
         reenteredNewPassword = self.reenterPasswordEntry.get()
+        reject, rejectionMsg = self.checkPasswordStandard(newPassword, reenteredNewPassword)
+        if reject:
+            tk.messagebox.showwarning(title='Password Not Accepted',
+                                      message=f"The Password is not accepted for the following reasons:{rejectionMsg}")
+        else:
+            self.parent.cryptObj = CryptographyHandler(newPassword)
+            (
+            encryptedKey,
+            encryptKeyIV,
+            generateKeySalt,
+            hashKeySalt,
+            hashedKey ) = self.parent.cryptObj.getCryptValues()
+            self.parent.presistentDBObj = PresistentDatabaseHandler()
+            self.parent.presistentDBObj.addCryptInfoEntry({'encryptedKey': encryptedKey,
+                                                            'encryptKeyIV': encryptKeyIV,
+                                                            'generateKeySalt': generateKeySalt,
+                                                            'hashKeySalt': hashKeySalt,
+                                                            'hashedKey': hashedKey
+                                                            })
+            self.parent.dataFormatterObj = DataFormatter(self.parent.cryptObj)
+            self.parent.setPassFrame.grid_forget()
+            self.parent.drawContent()
+        
+    def checkPasswordStandard(self, newPassword, reenteredNewPassword):
         rejectionMsg = ''
         reject = False
         if len(newPassword) < 9:
@@ -113,27 +137,7 @@ class SetPasswordFrame(ctk.CTkFrame):
         if not specialCharExist:
             rejectionMsg += "\n* No special character(s)!"
             reject = True
-        if reject:
-            tk.messagebox.showwarning(title='Password Not Accepted',
-                                      message=f"The Password is not accepted for the follosing reasons:{rejectionMsg}")
-        else:
-            self.parent.cryptObj = CryptographyHandler(newPassword)
-            (
-            encryptedKey,
-            encryptKeyIV,
-            generateKeySalt,
-            hashKeySalt,
-            hashedKey ) = self.parent.cryptObj.getCryptValues()
-            self.parent.presistentDBObj = PresistentDatabaseHandler()
-            self.parent.presistentDBObj.addCryptInfoEntry({'encryptedKey': encryptedKey,
-                                                            'encryptKeyIV': encryptKeyIV,
-                                                            'generateKeySalt': generateKeySalt,
-                                                            'hashKeySalt': hashKeySalt,
-                                                            'hashedKey': hashedKey
-                                                            })
-            self.parent.dataFormatterObj = DataFormatter(self.parent.cryptObj)
-            self.parent.setPassFrame.grid_forget()
-            self.parent.drawContent()
+        return reject, rejectionMsg
 
 
 
@@ -242,12 +246,13 @@ class PasswordAuthFrame(ctk.CTkFrame):
 
 # Reset Password frame
 class ResetPasswordToplevel(ctk.CTkToplevel):
-    def __init__(self, parent, **kwargs):
+    def __init__(self, parent, objs, **kwargs):
         super().__init__(parent, **kwargs)
         self.geometry("600x200")
         self.resizable(False, False)
         self.title('Set New Password')
         self.grab_set()
+        self.objs = objs
         # configure the rows and columns
         for row in range(4):
             self.grid_rowconfigure(row, weight=1)
@@ -319,7 +324,54 @@ class ResetPasswordToplevel(ctk.CTkToplevel):
     # the action for reset the password
     def resetPassword(self):
         print('resetting password')
+        currentPassword = self.currentPasswordEntry.get()
+        newPassword = self.newPasswordEntry.get()
+        reenteredNewPassword = self.reenterPasswordEntry.get()
+        reject, rejectionMsg = self.checkPasswordStandard(newPassword, reenteredNewPassword)
+        # verify the current password
+        if not self.objs['cryptObj'].verifyPassword(currentPassword):
+            tk.messagebox.showwarning(title='Wrong Password',
+                                      message='The current password is wrong!')
+        if reject:
+            tk.messagebox.showwarning(title='Password Not Accepted',
+                                      message=f"The Password is not accepted for the following reasons:{rejectionMsg}")
         self.destroy()
+
+    def checkPasswordStandard(self, newPassword, reenteredNewPassword):
+        rejectionMsg = ''
+        reject = False
+        if len(newPassword) < 9:
+            rejectionMsg += "\n* Password Length less than 9 characters!"
+            reject = True
+        if newPassword != reenteredNewPassword:
+            rejectionMsg += "\n* The Re-Entered Password does not Match!"
+            reject = True
+        upperCaseExist = False
+        lowerCaseExist = False
+        digitsExist = False
+        specialCharExist = False
+        for passwordChar in newPassword:
+            if passwordChar.isupper():
+                upperCaseExist = True
+            elif passwordChar.islower():
+                lowerCaseExist = True
+            elif passwordChar.isdigit():
+                digitsExist = True
+            elif passwordChar in string.punctuation:
+                specialCharExist = True
+        if not upperCaseExist:
+            rejectionMsg += "\n* No uppercase character(s)!"
+            reject = True
+        if not lowerCaseExist:
+            rejectionMsg += "\n* No lowercase character(s)!"
+            reject = True
+        if not digitsExist:
+            rejectionMsg += "\n* No Digits!"
+            reject = True
+        if not specialCharExist:
+            rejectionMsg += "\n* No special character(s)!"
+            reject = True
+        return reject, rejectionMsg
 
 
 
