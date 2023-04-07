@@ -2,7 +2,8 @@ import customtkinter as ctk
 from PIL import Image
 from database import DataFormatter, PresistentDatabaseHandler, MemoryDatabaseHandler, CryptographyHandler
 from mainUIComponents import SearchFrame, ItemListFrame, RibbonFrame, ItemInformationFrame
-from toplevelUIComponents import PasswordAuthFrame
+from toplevelUIComponents import PasswordAuthFrame, SetPasswordFrame
+import os
 
 
 
@@ -64,11 +65,16 @@ class Window(ctk.CTk):
         super().__init__()
         self.iconObj = Icons()
         self.memDBObj = MemoryDatabaseHandler()
-        self.presistentDBObj = PresistentDatabaseHandler()
+        self.presistentDBObj = None
         self.dataFormatterObj = None
         self.cryptObj = None
         self.title("Password Manager")
-        self.drawPasswordAuth()
+        dirList = os.listdir()
+        if 'test.db' in dirList:
+            self.presistentDBObj = PresistentDatabaseHandler()
+            self.drawPasswordAuth()
+        else:
+            self.drawCreateNewDB()
 
     #
     def getObjs(self):
@@ -81,7 +87,14 @@ class Window(ctk.CTk):
     # draws the windows to create a new sqlite
     # database if an existing one is not found
     def drawCreateNewDB(self):
-        pass
+        self.geometry("400x150")
+        self.resizable(False, False)
+        # configure the rows and column sizes
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+        # place the frames in the grid
+        self.setPassFrame = SetPasswordFrame(parent=self, height=150, width=400)
+        self.setPassFrame.grid(row=0, column=0, rowspan=1, columnspan=1, sticky='nsew')
 
     # draws the password input and submission window
     # upon authetication; will draw the content window
@@ -92,7 +105,7 @@ class Window(ctk.CTk):
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
         # place the frames in the grid
-        self.passwordAuthFrame = PasswordAuthFrame(parent=self, height=100, width=200)
+        self.passwordAuthFrame = PasswordAuthFrame(parent=self, height=150, width=400)
         self.passwordAuthFrame.grid(row=0, column=0, rowspan=1, columnspan=1, sticky='nsew')
 
     # draws the content window with search options and other operations

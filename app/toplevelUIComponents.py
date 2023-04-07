@@ -1,7 +1,142 @@
 import tkinter as tk
 import customtkinter as ctk
 from database import DataFormatter, CryptographyHandler
+from database import PresistentDatabaseHandler
 import uuid
+import string
+
+
+
+
+
+
+# The frame for creating a new database with a password
+class SetPasswordFrame(ctk.CTkFrame):
+    def __init__(self, parent, **kwargs):
+        super().__init__(parent, **kwargs)
+        self.parent = parent
+        # configure the rows and columns
+        for row in range(4):
+            self.grid_rowconfigure(row, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=3)
+        # label to indicate the necessary action
+        self.createNewDBLabel = ctk.CTkLabel(self,
+                                            text='Create a New Database')
+        self.createNewDBLabel.grid(row=0,
+                                    column=0,
+                                    rowspan=1,
+                                    columnspan=2,
+                                    sticky='we'
+                                    )
+        # enter new password label and entry
+        self.newPasswordLabel = ctk.CTkLabel(self,
+                                             text='Enter the New Password: ')
+        self.newPasswordLabel.grid(row=1,
+                                    column=0,
+                                    rowspan=1,
+                                    columnspan=1,
+                                    sticky='w'
+                                    )
+        self.newPasswordEntry = ctk.CTkEntry(self)
+        self.newPasswordEntry.grid(row=1,
+                                    column=1,
+                                    rowspan=1,
+                                    columnspan=1,
+                                    sticky='we'
+                                    )
+        # re-enter new password label and entry
+        self.reenterPasswordLabel = ctk.CTkLabel(self,
+                                                 text='Re-Enter the New Password: ')
+        self.reenterPasswordLabel.grid(row=2,
+                                      column=0,
+                                      rowspan=1,
+                                      columnspan=1,
+                                      sticky='w'
+                                      )
+        self.reenterPasswordEntry = ctk.CTkEntry(self)
+        self.reenterPasswordEntry.grid(row=2,
+                                      column=1,
+                                      rowspan=1,
+                                      columnspan=1,
+                                      sticky='we'
+                                      )
+        # the submit button
+        self.enterSubmitButton = ctk.CTkButton(self,
+                                               text='Submit',
+                                               anchor='center',
+                                               fg_color='green',
+                                               hover_color='#125200',
+                                               command=self.createNewDB
+                                               )
+        self.enterSubmitButton.grid(row=3,
+                                    column=1,
+                                    rowspan=1,
+                                    columnspan=1,
+                                    sticky='w'
+                                    )
+
+    #
+    def createNewDB(self):
+        newPassword = self.newPasswordEntry.get()
+        reenteredNewPassword = self.reenterPasswordEntry.get()
+        rejectionMsg = ''
+        reject = False
+        if len(newPassword) < 9:
+            rejectionMsg += "\n* Password Length less than 9 characters!"
+            reject = True
+        if newPassword != reenteredNewPassword:
+            rejectionMsg += "\n* The Re-Entered Password does not Match!"
+            reject = True
+        upperCaseExist = False
+        lowerCaseExist = False
+        digitsExist = False
+        specialCharExist = False
+        for passwordChar in newPassword:
+            if passwordChar.isupper():
+                upperCaseExist = True
+            elif passwordChar.islower():
+                lowerCaseExist = True
+            elif passwordChar.isdigit():
+                digitsExist = True
+            elif passwordChar in string.punctuation:
+                specialCharExist = True
+        if not upperCaseExist:
+            rejectionMsg += "\n* No uppercase character(s)!"
+            reject = True
+        if not lowerCaseExist:
+            rejectionMsg += "\n* No lowercase character(s)!"
+            reject = True
+        if not digitsExist:
+            rejectionMsg += "\n* No Digits!"
+            reject = True
+        if not specialCharExist:
+            rejectionMsg += "\n* No special character(s)!"
+            reject = True
+        if reject:
+            tk.messagebox.showwarning(title='Password Not Accepted',
+                                      message=f"The Password is not accepted for the follosing reasons:{rejectionMsg}")
+        else:
+            self.parent.cryptObj = CryptographyHandler(newPassword)
+            (
+            encryptedKey,
+            encryptKeyIV,
+            generateKeySalt,
+            hashKeySalt,
+            hashedKey ) = self.parent.cryptObj.getCryptValues()
+            self.parent.presistentDBObj = PresistentDatabaseHandler()
+            self.parent.presistentDBObj.addCryptInfoEntry({'encryptedKey': encryptedKey,
+                                                            'encryptKeyIV': encryptKeyIV,
+                                                            'generateKeySalt': generateKeySalt,
+                                                            'hashKeySalt': hashKeySalt,
+                                                            'hashedKey': hashedKey
+                                                            })
+            self.parent.dataFormatterObj = DataFormatter(self.parent.cryptObj)
+            self.parent.setPassFrame.grid_forget()
+            self.parent.drawContent()
+
+
+
 
 
 
@@ -56,6 +191,9 @@ class PasswordAuthFrame(ctk.CTkFrame):
         password = self.passwordEntry.get()
         cryptInfoPrimitiveS = self.parent.presistentDBObj.getCryptInfoRow()
         if not len(cryptInfoPrimitiveS):
+            tk.messagebox.showwarning(title='Decryption Error',
+                                      message='No password or decryption Information found!')
+            '''
             self.parent.cryptObj = CryptographyHandler(password)
             (
             encryptedKey,
@@ -69,6 +207,7 @@ class PasswordAuthFrame(ctk.CTkFrame):
                                                             'hashKeySalt': hashKeySalt,
                                                             'hashedKey': hashedKey
                                                             })
+            '''
         else:
             cryptInfoPrimitiveS = cryptInfoPrimitiveS[0]
             self.parent.cryptObj = CryptographyHandler(password,
