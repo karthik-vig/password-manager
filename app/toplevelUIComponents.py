@@ -1,9 +1,10 @@
 import tkinter as tk
 import customtkinter as ctk
 from database import DataFormatter, CryptographyHandler
-from database import PresistentDatabaseHandler
+from database import PresistentDatabaseHandler, CryptographyHandler
 import uuid
 import string
+import os
 
 
 
@@ -329,13 +330,58 @@ class ResetPasswordToplevel(ctk.CTkToplevel):
         reenteredNewPassword = self.reenterPasswordEntry.get()
         reject, rejectionMsg = self.checkPasswordStandard(newPassword, reenteredNewPassword)
         # verify the current password
-        if not self.objs['cryptObj'].verifyPassword(currentPassword):
+        currentPasswordVerification = self.objs['cryptObj'].verifyPassword(currentPassword)
+        if not currentPasswordVerification:
             tk.messagebox.showwarning(title='Wrong Password',
                                       message='The current password is wrong!')
         if reject:
             tk.messagebox.showwarning(title='Password Not Accepted',
                                       message=f"The Password is not accepted for the following reasons:{rejectionMsg}")
-        self.destroy()
+        if currentPasswordVerification and not reject:
+            self.copyPersistentDatabase(newPassword)
+            self.destroy()
+
+    def copyPersistentDatabase(self, newPassword):
+        # create new cryptObj and presistentDBObj
+        presistentDBObj = PresistentDatabaseHandler('test2')
+        cryptObj = CryptographyHandler(newPassword)
+        (encryptedKey,
+        encryptKeyIV,
+        generateKeySalt,
+        hashKeySalt,
+        hashedKey,
+        ) = cryptObj.getCryptValues()
+        presistentDBObj.addCryptInfoEntry({
+            'encryptedKey': encryptedKey,
+            'encryptKeyIV': encryptKeyIV,
+            'generateKeySalt': generateKeySalt,
+            'hashKeySalt': hashKeySalt,
+            'hashedKey': hashedKey
+        })
+        # get all the rows from the old database and decrypt and 
+        # encrypt them with the new credentials.
+        encryptedUserInfoPrimitiveS = self.objs['presistentDBObj'].getAllUserInfo()
+        for encryptedUserInfoPrimitive in encryptedUserInfoPrimitiveS:
+            userInfoPrimitive = self.objs['cryptObj'].decrypt(encryptedUserInfoPrimitive)
+            encryptedUserInfoEntry = cryptObj.encrypt(userInfoPrimitive)
+            presistentDBObj.addUserInfoEntry(encryptedUserInfoEntry)
+        # set the new cryptObj and presistentDBObj object values in
+        # the main window.
+        self.objs['mainWindow'].cryptObj = cryptObj
+        # delete the old database and rename the new database
+        presistentDBObj.disconnectDB()
+        self.objs['presistentDBObj'].disconnectDB()
+        del presistentDBObj
+        del self.objs['mainWindow'].presistentDBObj
+        del self.objs['presistentDBObj']
+        if os.path.exists('test.db'):
+            os.remove('test.db')
+            os.rename('test2.db', 'test.db')
+        else:
+            os.remove('test2.db')
+        presistentDBObj= PresistentDatabaseHandler()
+        self.objs['mainWindow'].presistentDBObj = presistentDBObj
+
 
     def checkPasswordStandard(self, newPassword, reenteredNewPassword):
         rejectionMsg = ''

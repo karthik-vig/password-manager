@@ -129,7 +129,7 @@ class CryptographyHandler:
     def verifyPassword(self, password):
         kdf1 = self._setupPBKDF2(self.generateKeySalt)
         kdf2 = self._setupPBKDF2(self.hashKeySalt)
-        keyToDecryptKey = kdf1.derive(bytes(self.password, encoding='utf-16'))
+        keyToDecryptKey = kdf1.derive(bytes(password, encoding='utf-16'))
         try:
             kdf2.verify(keyToDecryptKey,
                        self.hashedKey)
@@ -190,8 +190,10 @@ class CryptographyHandler:
 # handles connection and operation with presistent database
 class PresistentDatabaseHandler:
     # connect with the presistent database
-    def __init__(self):
-        self.engine = create_engine(f"sqlite+pysqlite:///test.db")
+    def __init__(self, databaseName=None):
+        if not databaseName:
+            databaseName = 'test'
+        self.engine = create_engine(f"sqlite+pysqlite:///{databaseName}.db")
         self.registryMapper = registry()
         self.Base = self.registryMapper.generate_base()
         self.UserInfo, self.CryptInfo = self._createTables()
@@ -216,6 +218,10 @@ class PresistentDatabaseHandler:
             hashKeySalt = Column(LargeBinary, nullable=False)
             hashedKey = Column(LargeBinary, nullable=False)
         return UserInfo, CryptInfo
+
+    # disconnects the link to the database
+    def disconnectDB(self):
+        self.engine.dispose()
 
     #
     def getCryptInfoRow(self):
@@ -302,6 +308,12 @@ class PresistentDatabaseHandler:
         return decryptedFileInfoPrimitives
         '''
         return encryptedFileInfoPrimitiveS
+
+    def getAllUserInfo(self):
+        with Session(self.engine) as session:
+            encryptedUserInfoResult = session.query(self.UserInfo).all()
+            encryptedUserInfoPrimitiveS = self.dataFormatterObj.convertRowsToListOfDict(encryptedUserInfoResult)
+        return encryptedUserInfoPrimitiveS
 
 
 

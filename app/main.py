@@ -82,7 +82,8 @@ class Window(ctk.CTk):
                 'memDBObj': self.memDBObj,
                 'presistentDBObj': self.presistentDBObj,
                 'dataFormatterObj': self.dataFormatterObj,
-                'cryptObj': self.cryptObj
+                'cryptObj': self.cryptObj,
+                'mainWindow': self
                }
     # draws the windows to create a new sqlite
     # database if an existing one is not found
