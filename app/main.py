@@ -128,6 +128,12 @@ class Window(ctk.CTk):
         self.itemInfoFrame = ItemInformationFrame(parent=self, objs=self.getObjs(), height=0, width=0)
         self.itemInfoFrame.grid(row=1, column=1, rowspan=1, columnspan=1, sticky='nsew', padx=5, pady=8)
 
+    # removes all the UI elements on the Windows
+    def removeAllContent(self):
+        self.searchFrame.destroy()
+        self.ribbonFrame.destroy()
+        self.itemInfoFrame.destroy()
+        self.itemListFrame.destroy()
 
                                         
                                     

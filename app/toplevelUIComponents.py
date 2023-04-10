@@ -381,6 +381,9 @@ class ResetPasswordToplevel(ctk.CTkToplevel):
             os.remove('test2.db')
         presistentDBObj= PresistentDatabaseHandler()
         self.objs['mainWindow'].presistentDBObj = presistentDBObj
+        self.objs['mainWindow'].removeAllContent()
+        self.objs['mainWindow'].drawContent()
+
 
 
     def checkPasswordStandard(self, newPassword, reenteredNewPassword):
