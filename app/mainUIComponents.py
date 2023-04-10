@@ -90,6 +90,7 @@ class RibbonFrame(ctk.CTkFrame):
                                                  hover_color='#353a3d',
                                                  command=self.resetPassword)
         self.resetPasswordButton.pack(side='left', fill='y', expand=True, padx=2, pady=5)
+        '''
         # the save button to push changes into presistent database
         self.saveButton = ctk.CTkButton(self,
                                         image=iconObj.saveFileImg,
@@ -101,6 +102,7 @@ class RibbonFrame(ctk.CTkFrame):
                                         hover_color='#353a3d',
                                         command=self.saveDatabase)
         self.saveButton.pack(side='left', fill='y', expand=True, padx=2, pady=5)
+        '''
         # the sync frame
         self.syncFrame = SyncFrame(parent=self, iconObj=iconObj)
         self.syncFrame.pack(side='left', fill='y', expand=True, padx=2, pady=5, ipadx=20)
@@ -114,9 +116,11 @@ class RibbonFrame(ctk.CTkFrame):
         #print('reset pass')
         self.resetPassFrame = ResetPasswordToplevel(parent=self, objs=self.objs)
 
+    '''
     # save memory database for presistent database action
     def saveDatabase(self):
         print('save database') 
+    '''
 
 
 
