@@ -130,3 +130,5 @@ dmypy.json
 
 svgicons/
 test.db
+
+.vscode/
