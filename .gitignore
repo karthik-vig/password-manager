@@ -132,3 +132,4 @@ svgicons/
 test.db
 
 .vscode/
+*.prof
