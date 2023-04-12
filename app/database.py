@@ -7,6 +7,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import padding
 import cryptography
+import pathlib
 
 
 
@@ -195,8 +196,12 @@ class PresistentDatabaseHandler:
     # connect with the presistent database
     def __init__(self, databaseName=None):
         if not databaseName:
-            databaseName = 'test'
-        self.engine = create_engine(f"sqlite+pysqlite:///{databaseName}.db")
+            databaseName = 'userData'
+        databasePath = pathlib.Path(__file__).parent.resolve()
+        databasePath = str(databasePath).replace('\\', '/')
+        upOneFolderIdx = databasePath.rfind('/')
+        databasePath = databasePath[:upOneFolderIdx]
+        self.engine = create_engine(f"sqlite+pysqlite:///{databasePath}/{databaseName}.db")
         self.registryMapper = registry()
         self.Base = self.registryMapper.generate_base()
         self.UserInfo, self.CryptInfo = self._createTables()

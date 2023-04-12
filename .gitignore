@@ -130,6 +130,8 @@ dmypy.json
 
 svgicons/
 test.db
+userData.db
+userDataTmp.db
 
 .vscode/
 *.prof

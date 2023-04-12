@@ -4,6 +4,7 @@ from database import DataFormatter, PresistentDatabaseHandler, MemoryDatabaseHan
 from mainUIComponents import SearchFrame, ItemListFrame, RibbonFrame, ItemInformationFrame
 from toplevelUIComponents import PasswordAuthFrame, SetPasswordFrame
 import os
+import pathlib
 
 
 
@@ -69,8 +70,12 @@ class Window(ctk.CTk):
         self.dataFormatterObj = None
         self.cryptObj = None
         self.title("Password Manager")
-        dirList = os.listdir()
-        if 'test.db' in dirList:
+        databasePath = pathlib.Path(__file__).parent.resolve()
+        databasePath = str(databasePath).replace('\\', '/')
+        upOneFolderIdx = databasePath.rfind('/')
+        databasePath = databasePath[:upOneFolderIdx]
+        dirList = os.listdir(databasePath)
+        if 'userData.db' in dirList:
             self.presistentDBObj = PresistentDatabaseHandler()
             self.drawPasswordAuth()
         else:

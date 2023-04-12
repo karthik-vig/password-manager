@@ -343,7 +343,7 @@ class ResetPasswordToplevel(ctk.CTkToplevel):
 
     def copyPersistentDatabase(self, newPassword):
         # create new cryptObj and presistentDBObj
-        presistentDBObj = PresistentDatabaseHandler('test2')
+        presistentDBObj = PresistentDatabaseHandler('userDataTmp')
         cryptObj = CryptographyHandler(newPassword)
         (encryptedKey,
         encryptKeyIV,
@@ -374,11 +374,11 @@ class ResetPasswordToplevel(ctk.CTkToplevel):
         del presistentDBObj
         del self.objs['mainWindow'].presistentDBObj
         del self.objs['presistentDBObj']
-        if os.path.exists('test.db'):
-            os.remove('test.db')
-            os.rename('test2.db', 'test.db')
+        if os.path.exists('userData.db'):
+            os.remove('userData.db')
+            os.rename('userDataTmp.db', 'userData.db')
         else:
-            os.remove('test2.db')
+            os.remove('userDataTmp.db')
         presistentDBObj= PresistentDatabaseHandler()
         self.objs['mainWindow'].presistentDBObj = presistentDBObj
         self.objs['mainWindow'].removeAllContent()
