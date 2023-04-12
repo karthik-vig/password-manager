@@ -104,7 +104,7 @@ class RibbonFrame(ctk.CTkFrame):
         self.saveButton.pack(side='left', fill='y', expand=True, padx=2, pady=5)
         '''
         # the sync frame
-        self.syncFrame = SyncFrame(parent=self, iconObj=iconObj)
+        self.syncFrame = SyncFrame(parent=self, objs=self.objs)
         self.syncFrame.pack(side='left', fill='y', expand=True, padx=2, pady=5, ipadx=20)
 
     # Create a new top-level windows to enter new entry details

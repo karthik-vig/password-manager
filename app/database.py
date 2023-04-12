@@ -111,6 +111,9 @@ class CryptographyHandler:
                 self.hashedKey,
                 )
 
+    def getPassword(self):
+        return self.password
+
     def _decryptAESKey(self, encryptedKey):
         kdf1 = self._setupPBKDF2(self.generateKeySalt)
         kdf2 = self._setupPBKDF2(self.hashKeySalt)
@@ -283,14 +286,6 @@ class PresistentDatabaseHandler:
             encryptedLoginInfoResult = session.query(self.UserInfo.loginInfo).all()
         # need to process ecrypted result to a list of dicts
         encryptedLoginInfoPrimitiveS = self.dataFormatterObj.convertRowsToListOfDict(encryptedLoginInfoResult)
-        # need to loop over the decrypt function to get all the necessary decrypted info
-        '''
-        decryptedLoginInfoPrimitives = []
-        for encryptedLoginInfoPrimitive in encryptedLoginInfoPrimitives:
-            decryptedLoginInfoPrimitive = self.cryptObj.decrypt(encryptedLoginInfoPrimitive)
-            decryptedLoginInfoPrimitives.append(decryptedLoginInfoPrimitive)
-        return decryptedLoginInfoPrimitives
-        '''
         return encryptedLoginInfoPrimitiveS
 
     def getFileInfoOnUUID(self, uniqueID):
@@ -299,15 +294,14 @@ class PresistentDatabaseHandler:
                                       .filter(self.UserInfo.uniqueID == uniqueID).all()
         # need to conver the result in a dict first
         encryptedFileInfoPrimitiveS = self.dataFormatterObj.convertRowsToListOfDict(encryptedFileInfoResult)
-        # need to loop over the decrypt function to get all the necessary decrypted info
-        '''
-        decryptedFileInfoPrimitives = []
-        for  encryptedFileInfoPrimitive in  encryptedFileInfoPrimitives:
-            decryptedFileInfoPrimitive = self.cryptObj.decrypt(encryptedFileInfoPrimitive)
-            decryptedFileInfoPrimitives.append(decryptedFileInfoPrimitive)
-        return decryptedFileInfoPrimitives
-        '''
         return encryptedFileInfoPrimitiveS
+
+    def getUserInfoOnUniqueID(self, uniqueID):
+        with Session(self.engine) as session:
+            encryptedUserInfoResult = session.query(self.UserInfo)\
+                                        .filter(self.UserInfo.uniqueID == uniqueID).all()
+            encryptedUserInfoPrimitiveS = self.dataFormatterObj.convertRowsToListOfDict(encryptedUserInfoResult)
+        return encryptedUserInfoPrimitiveS
 
     def getAllUserInfo(self):
         with Session(self.engine) as session:
@@ -315,6 +309,11 @@ class PresistentDatabaseHandler:
             encryptedUserInfoPrimitiveS = self.dataFormatterObj.convertRowsToListOfDict(encryptedUserInfoResult)
         return encryptedUserInfoPrimitiveS
 
+    def getAllUniqueID(self):
+        with Session(self.engine) as session:
+            allUniqueIDResult = session.query(self.UserInfo.uniqueID).all()
+            allUniqueIDPrimitiveS = self.dataFormatterObj.convertRowsToListOfDict(allUniqueIDResult)
+        return allUniqueIDPrimitiveS
 
 
 
