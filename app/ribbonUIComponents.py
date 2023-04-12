@@ -147,10 +147,11 @@ class SyncFrame(ctk.CTkFrame):
             fromDBUserInfoPrimitive = self.decryptRow(fromDBCryptObj, fromDBHandler, uniqueID)
             toDBUserInfoPrimitive = self.decryptRow(toDBCryptObj, toDBHandler, uniqueID)
             if fromDBUserInfoPrimitive != toDBUserInfoPrimitive:
-                toDBHandler.addUserInfoEntry({'uniqueID': uniqueID,
-                                              'loginInfo': toDBCryptObj.encrypt(fromDBUserInfoPrimitive['loginInfo']),
-                                              'fileInfo': toDBCryptObj.encrypt(fromDBUserInfoPrimitive['fileInfo'])
-                                              })
+                encryptedFromDBUserInfoPrimitive = toDBCryptObj.encrypt(fromDBUserInfoPrimitive)
+                toDBHandler.updateUserInfoEntry({'uniqueID': uniqueID,
+                                                 'loginInfo': encryptedFromDBUserInfoPrimitive['loginInfo'],
+                                                 'fileInfo': encryptedFromDBUserInfoPrimitive['fileInfo']
+                                                })
 
     def getUniqueIDS(self, dbHandler):
         allUniqueIDPrimitiveS = dbHandler.getAllUniqueID()
