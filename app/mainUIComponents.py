@@ -393,6 +393,7 @@ class ItemInformationFrame(ctk.CTkFrame):
                                                                     'fileInfo': self.filedata
                                                                     })
             self.objs['presistentDBObj'].updateUserInfoEntry(encryptedUserInfoEntry)
+            self.objs['mainWindow'].searchFrame.searchAction()
 
     def deleteAction(self):
         self.objs['presistentDBObj'].deleteUserInfoEntry(self.uniqueID)

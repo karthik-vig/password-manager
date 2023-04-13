@@ -36,7 +36,8 @@ class Icons:
 
     # gets and sets the entry type icons
     def getEntryTypeIcons(self):
-        entryTypeList = ['bank',
+        entryTypeList = ['choose...',
+                        'bank',
                         'communication',
                         'email',
                         'entertainment',
@@ -56,6 +57,11 @@ class Icons:
                                         size=(20, 20)
                                         )
             self.entryTypeImgDict[entryType] = entryTypeImg
+        '''
+        self.entryTypeImgDict['choose...'] = ctk.CTkImage(dark_image=Image.open(f"icons/entryTypeIcon/choose.png"),
+                                                            size=(20, 20)
+                                                            )
+        '''
 
 
 
