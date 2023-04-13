@@ -124,11 +124,11 @@ class Window(ctk.CTk):
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=2)
         # place the frames in the grid
-        self.searchFrame = SearchFrame(parent=self, objs=self.getObjs(), height=0, width=0)
+        self.searchFrame = SearchFrame(parent=self, objs=self.getObjs(), height=40, width=300)
         self.searchFrame.grid(row=0, column=0, rowspan=1, columnspan=1, sticky='nsew', padx=5, pady=8)
         self.ribbonFrame = RibbonFrame(parent=self, objs=self.getObjs(), height=0, width=0)
         self.ribbonFrame.grid(row=0, column=1, rowspan=1, columnspan=1, sticky='nsew', padx=5, pady=8)
-        self.itemListFrame = ItemListFrame(parent=self, objs=self.getObjs(), height=0, width=0)
+        self.itemListFrame = ItemListFrame(parent=self, objs=self.getObjs(), height=0, width=300)
         self.itemListFrame.grid(row=1, column=0, rowspan=1, columnspan=1, sticky='nsew', padx=5, pady=8)
         self.itemInfoFrame = ItemInformationFrame(parent=self, objs=self.getObjs(), height=0, width=0)
         self.itemInfoFrame.grid(row=1, column=1, rowspan=1, columnspan=1, sticky='nsew', padx=5, pady=8)

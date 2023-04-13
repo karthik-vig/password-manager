@@ -197,11 +197,13 @@ class PresistentDatabaseHandler:
     def __init__(self, databaseName=None):
         if not databaseName:
             databaseName = 'userData'
-        databasePath = pathlib.Path(__file__).parent.resolve()
-        databasePath = str(databasePath).replace('\\', '/')
-        upOneFolderIdx = databasePath.rfind('/')
-        databasePath = databasePath[:upOneFolderIdx]
-        self.engine = create_engine(f"sqlite+pysqlite:///{databasePath}/{databaseName}.db")
+            databasePath = pathlib.Path(__file__).parent.resolve()
+            databasePath = str(databasePath).replace('\\', '/')
+            upOneFolderIdx = databasePath.rfind('/')
+            databasePath = databasePath[:upOneFolderIdx] + '/' + databaseName
+        else:
+            databasePath = databaseName
+        self.engine = create_engine(f"sqlite+pysqlite:///{databasePath}.db")
         self.registryMapper = registry()
         self.Base = self.registryMapper.generate_base()
         self.UserInfo, self.CryptInfo = self._createTables()

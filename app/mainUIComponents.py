@@ -30,7 +30,7 @@ class SearchFrame(ctk.CTkFrame):
                                           image=iconObj.searchImg,
                                           text='',
                                           width=50,
-                                          height=0,
+                                          height=40,
                                           fg_color='#0074ff',
                                           hover_color='#002450',
                                           command=self.searchAction)
@@ -66,30 +66,33 @@ class SearchFrame(ctk.CTkFrame):
 class RibbonFrame(ctk.CTkFrame):
     def __init__(self, parent, objs, **kwargs):
         super().__init__(parent, **kwargs)
-        # add the add new entry button
         self.objs = objs
         iconObj = self.objs['iconObj']
+        # eats up unnecessary space in the sides
+        leftFrame = ctk.CTkFrame(self, height=40)
+        leftFrame.pack(side='left', expand=True, fill='both')
+        # add the add new entry button
         self.addButton  = ctk.CTkButton(self,
                                         image=iconObj.addImg,
                                         text='',
                                         width=50,
-                                        height=0,
+                                        height=40,
                                         anchor='center',
                                         fg_color='green',
                                         hover_color='#125200',
                                         command=self.addAction)
-        self.addButton.pack(side='left', fill='y', expand=True, padx=2, pady=5)
+        self.addButton.pack(side='left', fill='y', expand=False, padx=5, pady=5)
         # add a reset password button
         self.resetPasswordButton = ctk.CTkButton(self,
                                                  image=iconObj.resetImg,
                                                  text='',
                                                  width=50,
-                                                 height=0,
+                                                 height=40,
                                                  anchor='center',
                                                  fg_color='#585f63',
                                                  hover_color='#353a3d',
                                                  command=self.resetPassword)
-        self.resetPasswordButton.pack(side='left', fill='y', expand=True, padx=2, pady=5)
+        self.resetPasswordButton.pack(side='left', fill='y', expand=False, padx=5, pady=5)
         '''
         # the save button to push changes into presistent database
         self.saveButton = ctk.CTkButton(self,
@@ -104,8 +107,11 @@ class RibbonFrame(ctk.CTkFrame):
         self.saveButton.pack(side='left', fill='y', expand=True, padx=2, pady=5)
         '''
         # the sync frame
-        self.syncFrame = SyncFrame(parent=self, objs=self.objs)
-        self.syncFrame.pack(side='left', fill='y', expand=True, padx=2, pady=5, ipadx=20)
+        self.syncFrame = SyncFrame(parent=self, objs=self.objs, height=40)
+        self.syncFrame.pack(side='left', fill='y', expand=False, padx=5, pady=5, ipadx=20)
+        # eats up unnecessary space in the sides
+        rightFrame = ctk.CTkFrame(self, height=40)
+        rightFrame.pack(side='left', expand=True, fill='both')
 
     # Create a new top-level windows to enter new entry details
     def addAction(self):
@@ -432,6 +438,7 @@ class ItemListFrame(ctk.CTkScrollableFrame):
             button = ctk.CTkButton(self,
                                    text=item['entryName'],
                                    image=entryTypeImg,
+                                   height=50,
                                    compound='left', 
                                    anchor='w', 
                                    fg_color="#4a4a4a", 

@@ -48,7 +48,7 @@ class SyncFrame(ctk.CTkFrame):
                                         image=iconObj.syncEntryImg,
                                         anchor='center',
                                         width=50,
-                                        height=0,
+                                        height=30,
                                         command=self.syncAction
                                         )
         self.syncButton.pack(side='left', fill='y', expand=True)
