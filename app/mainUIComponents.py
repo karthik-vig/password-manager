@@ -69,7 +69,7 @@ class RibbonFrame(ctk.CTkFrame):
         self.objs = objs
         iconObj = self.objs['iconObj']
         # eats up unnecessary space in the sides
-        leftFrame = ctk.CTkFrame(self, height=40)
+        leftFrame = ctk.CTkFrame(self, height=40, fg_color='#2b2b2b')
         leftFrame.pack(side='left', expand=True, fill='both')
         # add the add new entry button
         self.addButton  = ctk.CTkButton(self,
@@ -110,7 +110,7 @@ class RibbonFrame(ctk.CTkFrame):
         self.syncFrame = SyncFrame(parent=self, objs=self.objs, height=40)
         self.syncFrame.pack(side='left', fill='y', expand=False, padx=5, pady=5, ipadx=20)
         # eats up unnecessary space in the sides
-        rightFrame = ctk.CTkFrame(self, height=40)
+        rightFrame = ctk.CTkFrame(self, height=40, width=200, fg_color='#2b2b2b')
         rightFrame.pack(side='left', expand=True, fill='both')
 
     # Create a new top-level windows to enter new entry details
