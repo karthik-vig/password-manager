@@ -142,7 +142,8 @@ class ItemInformationFrame(ctk.CTkFrame):
     def __init__(self, parent, objs, **kwargs):
         super().__init__(parent, **kwargs)
         self.grid_columnconfigure(0, weight=1)
-        self.grid_columnconfigure(1, weight=7)
+        self.grid_columnconfigure(1, weight=5)
+        self.grid_columnconfigure(2, weight=2)
         for idx in  range(9):
             self.grid_rowconfigure(idx, weight=1)
         self.grid_rowconfigure(6, weight=4)
@@ -175,7 +176,7 @@ class ItemInformationFrame(ctk.CTkFrame):
             entry.grid(row=row,
                         column=1,
                         rowspan=1,
-                        columnspan=1,
+                        columnspan=2,
                         sticky='ew',
                         padx=5,
                         )
@@ -239,7 +240,7 @@ class ItemInformationFrame(ctk.CTkFrame):
         notesEntry.grid(row=6,
                         column=1,
                         rowspan=1,
-                        columnspan=1,
+                        columnspan=2,
                         sticky='nsew',
                         padx=5,
                         )
@@ -263,12 +264,27 @@ class ItemInformationFrame(ctk.CTkFrame):
                         rowspan=1,
                         columnspan=1,
                         sticky='w')
+        # the button to delete the the file
+        deleteFileButton = ctk.CTkButton(self,
+                                        text='Remove File',
+                                        width=100,
+                                        fg_color='red',
+                                        hover_color='#620000',
+                                        command=self.deleteFileAction
+                                        )
+        deleteFileButton.grid(row=7,
+                            column=2,
+                            rowspan=1,
+                            columnspan=1,
+                            sticky='w')
+        # button to add a new file
         modifyFileButton = ctk.CTkButton(self,
                                         text='Add New File',
+                                        width=100,
                                         command=self.addNewFileAction
                                         )
         modifyFileButton.grid(row=7,
-                        column=1,
+                        column=2,
                         rowspan=1,
                         columnspan=1,
                         sticky='e')
@@ -292,10 +308,10 @@ class ItemInformationFrame(ctk.CTkFrame):
                                   command=self.deleteAction
                                   )
         deleteButton.grid(row=8,
-                        column=1,
+                        column=2,
                         rowspan=1,
                         columnspan=1,
-                        sticky='e')
+                        sticky='w')
         # add the labels and widgets into a dict data structure; to keep track of them
         self.fieldDict['entryType'] = {'label': typeLabel,
                                   'entry': typeSelectBox
@@ -306,6 +322,9 @@ class ItemInformationFrame(ctk.CTkFrame):
         self.fieldDict['file'] = {'label': fileLabel,
                                   'entry': fileButton
                                   }
+        self.fieldDict['deleteFileButton'] = {'label': None,
+                                              'entry': deleteFileButton   
+                                             }
         self.fieldDict['modifyFileButton'] = {'label': None,
                                                'entry': modifyFileButton
                                                 }
@@ -348,14 +367,9 @@ class ItemInformationFrame(ctk.CTkFrame):
         self.uniqueID = loginInfoEntry['uniqueID']
         encryptedFileInfoPrimitive = self.objs['presistentDBObj'].getFileInfoOnUUID(self.uniqueID)[0]
         fileInfoPrimitive = self.objs['cryptObj'].decrypt(encryptedFileInfoPrimitive)
-        for key in self.fieldDict.keys():
-            if key != 'modifyButton' and\
-               key != 'deleteButton' and\
-               key != 'modifyFileButton' and\
-               key != 'file' and\
-               key != 'entryType' and\
-               key != 'notes' and\
-               loginInfoEntry[key] != None:
+        entriesToSet = ['entryName', 'userName', 'password', 'email', 'url']
+        for key in entriesToSet:
+            if loginInfoEntry[key] != None:
                 self.fieldDict[key]['entry'].insert("0", loginInfoEntry[key])
         self.fieldDict['entryType']['entry'].set(loginInfoEntry['entryType'])
         self.fieldDict['notes']['entry'].insert('0.0', loginInfoEntry['notes'])
@@ -367,13 +381,9 @@ class ItemInformationFrame(ctk.CTkFrame):
         if self.uniqueID != None:
             loginInfoEntry = {}
             loginInfoEntry['uniqueID'] = self.uniqueID
-            for key in self.fieldDict.keys():
-                if key != 'modifyButton' and\
-                   key != 'deleteButton' and\
-                   key != 'modifyFileButton' and\
-                   key != 'file' and\
-                   key != 'notes':
-                    loginInfoEntry[key] = self.fieldDict[key]['entry'].get()
+            entriesToGet = ['entryName', 'userName', 'password', 'email', 'url', 'entryType']
+            for key in entriesToGet:
+                loginInfoEntry[key] = self.fieldDict[key]['entry'].get()
             loginInfoEntry['notes'] = self.fieldDict['notes']['entry'].get('0.0', 'end')
             loginInfoEntry['fileName'] = self.filename
             self.objs['memDBObj'].modifyLoginInfoEntry(loginInfoEntry)
@@ -388,22 +398,24 @@ class ItemInformationFrame(ctk.CTkFrame):
         self.objs['presistentDBObj'].deleteUserInfoEntry(self.uniqueID)
         self.objs['memDBObj'].deleteEntry(self.uniqueID)
         self.clearAllEntries()
+        self.objs['mainWindow'].searchFrame.searchAction()
 
     def clearAllEntries(self):
-        for key in self.fieldDict.keys():
-            if key != 'modifyButton' and\
-               key != 'deleteButton' and\
-               key != 'modifyFileButton' and\
-               key != 'file' and\
-               key != 'entryType' and\
-               key != 'notes':
-                self.fieldDict[key]['entry'].delete("0","end")
+        entriesToDelete = ['entryName', 'userName', 'password', 'email', 'url']
+        for key in entriesToDelete:
+            self.fieldDict[key]['entry'].delete("0","end")
         self.file = None
         self.filename = None
         self.filedate = None
         self.fieldDict['file']['entry'].configure(text='None')
         self.fieldDict['notes']['entry'].delete('0.0', 'end')
         self.fieldDict['entryType']['entry'].set('Choose...')
+
+    def deleteFileAction(self):
+        self.file = None
+        self.filename = None
+        self.filedata = None
+        self.fieldDict['file']['entry'].configure(text=f"{self.filename}")
 
 
 
