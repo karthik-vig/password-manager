@@ -77,7 +77,9 @@ class SetPasswordFrame(ctk.CTkFrame):
                                     sticky='w'
                                     )
 
-    #
+    # creates a new database to store user data
+    # after verifying that the new password is upto a 
+    # set standard
     def createNewDB(self):
         newPassword = self.newPasswordEntry.get()
         reenteredNewPassword = self.reenterPasswordEntry.get()
@@ -104,6 +106,7 @@ class SetPasswordFrame(ctk.CTkFrame):
             self.parent.setPassFrame.grid_forget()
             self.parent.drawContent()
         
+    # check to see if the new password fits the password standard
     def checkPasswordStandard(self, newPassword, reenteredNewPassword):
         rejectionMsg = ''
         reject = False
@@ -191,39 +194,30 @@ class PasswordAuthFrame(ctk.CTkFrame):
                                       columnspan=1,
                                       sticky='w'
                                       )
+
     # Authenticates the password and then draws the content window
     def submitPassword(self):
         password = self.passwordEntry.get()
-        cryptInfoPrimitiveS = self.parent.presistentDBObj.getCryptInfoRow()
+        # get the only row from CryptInfo table
+        cryptInfoPrimitive = self.parent.presistentDBObj.getCryptInfoRow()[0]
         if not len(cryptInfoPrimitiveS):
             tk.messagebox.showwarning(title='Decryption Error',
                                       message='No password or decryption Information found!')
-            '''
-            self.parent.cryptObj = CryptographyHandler(password)
-            (
-            encryptedKey,
-            encryptKeyIV,
-            generateKeySalt,
-            hashKeySalt,
-            hashedKey ) = self.parent.cryptObj.getCryptValues()
-            self.parent.presistentDBObj.addCryptInfoEntry({'encryptedKey': encryptedKey,
-                                                            'encryptKeyIV': encryptKeyIV,
-                                                            'generateKeySalt': generateKeySalt,
-                                                            'hashKeySalt': hashKeySalt,
-                                                            'hashedKey': hashedKey
-                                                            })
-            '''
         else:
-            cryptInfoPrimitiveS = cryptInfoPrimitiveS[0]
+            # set up the crypt object with the values from the 
+            # CryptInfo table row
             self.parent.cryptObj = CryptographyHandler(password,
-                                                        cryptInfoPrimitiveS['encryptedKey'],
-                                                        cryptInfoPrimitiveS['encryptKeyIV'],
-                                                        cryptInfoPrimitiveS['generateKeySalt'],
-                                                        cryptInfoPrimitiveS['hashKeySalt'],
-                                                        cryptInfoPrimitiveS['hashedKey'],
+                                                        cryptInfoPrimitive['encryptedKey'],
+                                                        cryptInfoPrimitive['encryptKeyIV'],
+                                                        cryptInfoPrimitive['generateKeySalt'],
+                                                        cryptInfoPrimitive['hashKeySalt'],
+                                                        cryptInfoPrimitive['hashedKey'],
                                                         )
         self.parent.dataFormatterObj = DataFormatter(self.parent.cryptObj)
-            
+        # check if the password is the correct password
+        # if the password is correnct then get loginInfo column
+        # data from UserInfo table and place them after decrypting and
+        # decoding into the LoginInfo table in the memory database 
         if not self.parent.cryptObj.getAuthStatus():
             tk.messagebox.showwarning(title='Authentication Failed',
                                       message='Authentication Failed, re-enter password')
@@ -231,7 +225,6 @@ class PasswordAuthFrame(ctk.CTkFrame):
             encryptedLoginInfoPrimitiveS = self.parent.presistentDBObj.getAllLoginInfo()
             for encryptedLoginInfoPrimitive in encryptedLoginInfoPrimitiveS:
                 loginInfoPrimitive = self.parent.cryptObj.decrypt(encryptedLoginInfoPrimitive)
-                #print(loginInfoPrimitive)
                 loginInfoEntry = self.parent.dataFormatterObj.convertToPythonType(loginInfoPrimitive['loginInfo'])
                 self.parent.memDBObj.addNewEntry(loginInfoEntry)
             self.parent.passwordAuthFrame.grid_forget()
@@ -324,7 +317,6 @@ class ResetPasswordToplevel(ctk.CTkToplevel):
 
     # the action for reset the password
     def resetPassword(self):
-        print('resetting password')
         currentPassword = self.currentPasswordEntry.get()
         newPassword = self.newPasswordEntry.get()
         reenteredNewPassword = self.reenterPasswordEntry.get()
@@ -341,6 +333,10 @@ class ResetPasswordToplevel(ctk.CTkToplevel):
             self.copyPersistentDatabase(newPassword)
             self.destroy()
 
+    # creates a temporary database and copies the values from the
+    # current database (decrypt with old key and encrypt with new key)
+    # into the temporary database. Then deletes the current database and
+    # renames the temporary database to the name of the current database.
     def copyPersistentDatabase(self, newPassword):
         # create new cryptObj and presistentDBObj
         presistentDBObj = PresistentDatabaseHandler('userDataTmp')
@@ -384,8 +380,7 @@ class ResetPasswordToplevel(ctk.CTkToplevel):
         self.objs['mainWindow'].removeAllContent()
         self.objs['mainWindow'].drawContent()
 
-
-
+    # check to see if the new password fits the password standard
     def checkPasswordStandard(self, newPassword, reenteredNewPassword):
         rejectionMsg = ''
         reject = False
@@ -579,31 +574,19 @@ class AddNewEntryToplevel(ctk.CTkToplevel):
         self.fieldDict['AddButton'] = {'label': None,
                                        'entry': addButton
                                       }
-    '''
-    # gets and sets the current chosen value of the combo box for entry type
-    def getSelectBoxValue(self, value):
-        self.selectTypeBoxValue = value
-    '''
 
     # choose file to add to the new entry
     def chooseFile(self):
         self.file = ctk.filedialog.askopenfile(parent=self, mode='rb', initialdir='/')
         if self.file:
             self.fieldDict['file']['entry'].configure(text=f"{self.file.name.split('/')[-1][:50]}")
-        '''
-        if self.file:
-            print(self.file.name.split('/')[-1])
-            print(self.file.read())
-        '''
 
-    # the action to create a new database entry based on the entered values
+    # the action to create a new database entry (row) based on the entered values
     def addAction(self):
-        #print('add action')
         loginInfoEntry = {}
         loginInfoEntry['uniqueID'] = str(uuid.uuid4())
         for key in self.fieldDict.keys():
             if key != 'notes' and key != 'file' and key != 'AddButton':
-                #print(f"{key} : {self.fieldDict[key]['entry'].get()}")
                 loginInfoEntry[key] = self.fieldDict[key]['entry'].get()
         loginInfoEntry['notes'] = self.fieldDict['notes']['entry'].get('0.0', 'end')
         loginInfoEntry['fileName'] = None
@@ -611,7 +594,6 @@ class AddNewEntryToplevel(ctk.CTkToplevel):
         if self.file:
             loginInfoEntry['fileName'] = self.file.name.split('/')[-1]
             fileData = self.file.read()
-        #print(loginInfoEntry)
         self.objs['memDBObj'].addNewEntry(loginInfoEntry)
         loginInfoEntryBytes = self.objs['dataFormatterObj'].convertToBytes(loginInfoEntry)
         encryptedUserInfoEntry = self.objs['cryptObj'].encrypt({'uniqueID' : loginInfoEntry['uniqueID'],
