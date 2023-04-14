@@ -20,6 +20,7 @@ class SearchFrame(ctk.CTkFrame):
                                       width=0,
                                       height=0)
         self.searchBox.pack(side='left', fill='both', expand=True)
+        self.searchBox.bind('<Return>', self.searchAction)
         # add the search button
         self.searchButton = ctk.CTkButton(self,
                                           image=iconObj.searchImg,
@@ -32,7 +33,7 @@ class SearchFrame(ctk.CTkFrame):
         self.searchButton.pack(side='right', fill='y')
 
     # get data from the database using the string value in the search box
-    def searchAction(self):
+    def searchAction(self, eventInfo=None):
         searchText = self.searchBox.get()
         itemList = self.objs['memDBObj'].searchLoginInfo(searchText)
         self.parent.itemListFrame.deleteItemList()

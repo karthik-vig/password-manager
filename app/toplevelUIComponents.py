@@ -180,6 +180,7 @@ class PasswordAuthFrame(ctk.CTkFrame):
                                 columnspan=1,
                                 sticky='we'
                                 )
+        self.passwordEntry.bind('<Return>', self.submitPassword)
         # create and place the password submit button in the grid
         self.enterPasswordButton = ctk.CTkButton(self,
                                                  text='Submit',
@@ -196,7 +197,7 @@ class PasswordAuthFrame(ctk.CTkFrame):
                                       )
 
     # Authenticates the password and then draws the content window
-    def submitPassword(self):
+    def submitPassword(self, eventInfo=None):
         password = self.passwordEntry.get()
         # get the only row from CryptInfo table
         cryptInfoPrimitive = self.parent.presistentDBObj.getCryptInfoRow()[0]
