@@ -200,7 +200,7 @@ class PasswordAuthFrame(ctk.CTkFrame):
         password = self.passwordEntry.get()
         # get the only row from CryptInfo table
         cryptInfoPrimitive = self.parent.presistentDBObj.getCryptInfoRow()[0]
-        if not len(cryptInfoPrimitiveS):
+        if not len(cryptInfoPrimitive):
             tk.messagebox.showwarning(title='Decryption Error',
                                       message='No password or decryption Information found!')
         else:
