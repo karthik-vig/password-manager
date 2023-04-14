@@ -21,11 +21,6 @@ class SearchFrame(ctk.CTkFrame):
                                       height=0)
         self.searchBox.pack(side='left', fill='both', expand=True)
         # add the search button
-        '''
-        searchImg = ctk.CTkImage(dark_image=Image.open('icons/buttonIcon/search.png'),
-                                 size=(20, 20)
-                                )
-        '''
         self.searchButton = ctk.CTkButton(self,
                                           image=iconObj.searchImg,
                                           text='',
@@ -40,22 +35,8 @@ class SearchFrame(ctk.CTkFrame):
     def searchAction(self):
         searchText = self.searchBox.get()
         itemList = self.objs['memDBObj'].searchLoginInfo(searchText)
-        '''
-        itemList = [
-                        {'entryName': 'btn1',
-                         'entryType': 'bank',
-                         'id': 1},
-                        {'entryName': 'btn2',
-                         'entryType': 'email',
-                         'id': 2},
-                    ]
-        '''
         self.parent.itemListFrame.deleteItemList()
         self.parent.itemListFrame.addItemList(itemList=itemList)
-
-
-
-
 
 
 
@@ -93,20 +74,7 @@ class RibbonFrame(ctk.CTkFrame):
                                                  hover_color='#353a3d',
                                                  command=self.resetPassword)
         self.resetPasswordButton.pack(side='left', fill='y', expand=False, padx=5, pady=5)
-        '''
-        # the save button to push changes into presistent database
-        self.saveButton = ctk.CTkButton(self,
-                                        image=iconObj.saveFileImg,
-                                        text='',
-                                        width=50,
-                                        height=0,
-                                        anchor='center',
-                                        fg_color='#585f63',
-                                        hover_color='#353a3d',
-                                        command=self.saveDatabase)
-        self.saveButton.pack(side='left', fill='y', expand=True, padx=2, pady=5)
-        '''
-        # the sync frame
+        # the sync frame with options for sync
         self.syncFrame = SyncFrame(parent=self, objs=self.objs, height=40)
         self.syncFrame.pack(side='left', fill='y', expand=False, padx=5, pady=5, ipadx=20)
         # eats up unnecessary space in the sides
@@ -119,17 +87,7 @@ class RibbonFrame(ctk.CTkFrame):
 
     # resets the password of the sqilte database
     def resetPassword(self):
-        #print('reset pass')
         self.resetPassFrame = ResetPasswordToplevel(parent=self, objs=self.objs)
-
-    '''
-    # save memory database for presistent database action
-    def saveDatabase(self):
-        print('save database') 
-    '''
-
-
-
 
 
 
@@ -335,6 +293,7 @@ class ItemInformationFrame(ctk.CTkFrame):
                                           'entry': deleteButton
                                             }
 
+    # opens the dialog box for getting a new file and reading it's data
     def addNewFileAction(self):
         self.file = ctk.filedialog.askopenfile(parent=self, mode='rb', initialdir='/')
         if self.file:
@@ -342,9 +301,8 @@ class ItemInformationFrame(ctk.CTkFrame):
             self.filedata = self.file.read()
             self.fieldDict['file']['entry'].configure(text=f"{self.filename}")
 
+    # opens dialog box to write file to disk
     def saveFile(self):
-        #filename = 'hello world.txt'
-        #filedata = b'bytes data'
         if self.filename != None and self.filedata != None:
             filext = [('All Files', '*.' + self.filename.split('.')[-1]), ]
             fileLink = ctk.filedialog.asksaveasfile(parent=self, 
@@ -360,10 +318,12 @@ class ItemInformationFrame(ctk.CTkFrame):
             tk.messagebox.showwarning(title='No File',
                                       message='No file was attached to this entry')
     
+    # retrieve the values from memory database
+    # and file value from presistent database based on uniqueID
+    # and set them to the fields in the ItemInformationFrame
     def setAllEntryValue(self, id):
         self.clearAllEntries()
         loginInfoEntry = self.objs['memDBObj'].getLoginInfoEntryOnID(id)
-        #print(loginInfoEntry)
         self.uniqueID = loginInfoEntry['uniqueID']
         encryptedFileInfoPrimitive = self.objs['presistentDBObj'].getFileInfoOnUUID(self.uniqueID)[0]
         fileInfoPrimitive = self.objs['cryptObj'].decrypt(encryptedFileInfoPrimitive)
@@ -377,6 +337,8 @@ class ItemInformationFrame(ctk.CTkFrame):
         self.fieldDict['file']['entry'].configure(text=f"{self.filename}")
         self.filedata = fileInfoPrimitive['fileInfo']
 
+    # get the values in the ItemInformationFrame entry boxes and files
+    # and encrypt and store them in both memory and presistent databases.
     def modifyAction(self):
         if self.uniqueID != None:
             loginInfoEntry = {}
@@ -395,12 +357,16 @@ class ItemInformationFrame(ctk.CTkFrame):
             self.objs['presistentDBObj'].updateUserInfoEntry(encryptedUserInfoEntry)
             self.objs['mainWindow'].searchFrame.searchAction()
 
+    # delete the entry (row) from memory and presistent 
+    # database based on uniqueID
     def deleteAction(self):
         self.objs['presistentDBObj'].deleteUserInfoEntry(self.uniqueID)
         self.objs['memDBObj'].deleteEntry(self.uniqueID)
         self.clearAllEntries()
         self.objs['mainWindow'].searchFrame.searchAction()
 
+    # clears all the values already in entry or file fields 
+    # in the ItemInformationFrame
     def clearAllEntries(self):
         entriesToDelete = ['entryName', 'userName', 'password', 'email', 'url']
         for key in entriesToDelete:
@@ -412,6 +378,8 @@ class ItemInformationFrame(ctk.CTkFrame):
         self.fieldDict['notes']['entry'].delete('0.0', 'end')
         self.fieldDict['entryType']['entry'].set('Choose...')
 
+    # deletes the entry (row) from both memory and
+    # presistent databases based on uniqueID
     def deleteFileAction(self):
         self.file = None
         self.filename = None

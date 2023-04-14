@@ -53,20 +53,26 @@ class SyncFrame(ctk.CTkFrame):
                                         )
         self.syncButton.pack(side='left', fill='y', expand=True)
 
-    #
+    # sets the operationMode to export and deselects the 
+    # other operationMode radio button
     def unckeckImportRadioButton(self):
         self.importRadioButton.deselect()
         self.operationMode = 'export'
  
+    # sets the operationMode to import and deselects the 
+    # other operationMode radio button
     def unckeckExportRadioButton(self):
         self.exportRadioButton.deselect()
         self.operationMode = 'import'
 
+    # sets the operation mode for new entry, delete entry
+    # or to update entries between two databases.
     def setOperationMode(self, operation):
         self.operation = operation
 
+    # this method uses the operation and operationMode variables
+    # to perform sync operation between two different databases.
     def syncAction(self):
-        print('called the sync action')
         if self.operation == 'Choose...' or self.operation == None:
             tk.messagebox.showwarning(title = 'Invalid Operation',
                                       message = 'Please Choose an option from the drop-down box.'
@@ -75,6 +81,8 @@ class SyncFrame(ctk.CTkFrame):
         externalDBLocation = tk.filedialog.askopenfilename()
         if not externalDBLocation:
             return
+        # based on operationMode, set the fromDB and toDB
+        # along with their CryptObjs
         if self.operationMode == 'export':
             fromDBHandler = self.objs['presistentDBObj']
             fromDBCryptObj = self.objs['cryptObj'] 
@@ -109,6 +117,7 @@ class SyncFrame(ctk.CTkFrame):
                                           message= 'The password of the current database did not match the external database; cannot decrypt!'
                                           )
                 return
+        # call the necessary sync action as per selection
         if self.operation == 'Add New Entries':
             self.copyNewEntries(fromDBHandler, toDBHandler)
         elif self.operation == 'Delete Missing Entries':
@@ -153,6 +162,7 @@ class SyncFrame(ctk.CTkFrame):
                                                  'fileInfo': encryptedFromDBUserInfoPrimitive['fileInfo']
                                                 })
 
+    # get a set of UUID4 based uniqueID for a given database
     def getUniqueIDS(self, dbHandler):
         allUniqueIDPrimitiveS = dbHandler.getAllUniqueID()
         allUniqueIDS = []
@@ -160,6 +170,8 @@ class SyncFrame(ctk.CTkFrame):
             allUniqueIDS.append(allUniqueIDPrimitive['uniqueID'])
         return set(allUniqueIDS)
 
+    # for a database get a row baed on uniqueID and 
+    # decrypt it
     def decryptRow(self, cryptObj, dbHandler, uniqueID):
         encryptedUserInfoPrimitive = dbHandler.getUserInfoOnUniqueID(uniqueID)[0]
         userInfoPrimitive = cryptObj.decrypt(encryptedUserInfoPrimitive)
