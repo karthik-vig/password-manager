@@ -135,3 +135,5 @@ userDataTmp.db
 
 .vscode/
 *.prof
+
+packaged app/
