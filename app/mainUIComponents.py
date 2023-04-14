@@ -396,25 +396,21 @@ class ItemListFrame(ctk.CTkScrollableFrame):
     def __init__(self, parent, objs, **kwargs):
         super().__init__(parent, **kwargs)
         self.objs = objs
+        self.parent = parent
         self.iconObj = self.objs['iconObj']
         self.parent = parent
         self.buttonItemList = []
         
     # deletes all the buttons in the scrollable window
     def deleteItemList(self):
-        for buttonItem in self.buttonItemList:
-            buttonItem.pack_forget()
-            buttonItem.destroy()
-        self.buttonItemList = []
+        self.parent.itemListFrame = ItemListFrame(parent=self.parent, objs=self.parent.getObjs(), height=0, width=300)
+        self.parent.itemListFrame.grid(row=1, column=0, rowspan=1, columnspan=1, sticky='nsew', padx=5, pady=8)
+        self.grid_forget()
+        self.destroy()
 
     # adds a list of buttons based on the values in itemList
     def addItemList(self, itemList):
         for item in itemList:
-            '''
-            img = ctk.CTkImage(dark_image=Image.open(f"icons/entryTypeIcon/{item['type']}.png"),
-                               size=(30, 30)
-                              )
-            '''
             entryTypeImg = self.iconObj.entryTypeImgDict[item['entryType'].lower()]
             buttonCallback = partial(self.getEntryDetail, item['id'])
             button = ctk.CTkButton(self,
