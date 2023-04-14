@@ -135,6 +135,8 @@ class Window(ctk.CTk):
         self.itemListFrame.grid(row=1, column=0, rowspan=1, columnspan=1, sticky='nsew', padx=5, pady=8)
         self.itemInfoFrame = ItemInformationFrame(parent=self, objs=self.getObjs(), height=0, width=0)
         self.itemInfoFrame.grid(row=1, column=1, rowspan=1, columnspan=1, sticky='nsew', padx=5, pady=8)
+        # list all the entries
+        self.searchFrame.searchAction()
 
     # removes all the UI elements on the Windows
     def removeAllContent(self):
