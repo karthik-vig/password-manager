@@ -16,33 +16,31 @@ class DataFormatter:
     def __init__(self, cryptObj):
         self.cryptObj = cryptObj
 
+    # converts a python dict/list of dict structure to bytes
     def convertToBytes(self, data):
         return bytes( json.dumps(data), encoding='utf-16' )
 
+    # converts bytes back into python dict/list of dict
     def convertToPythonType(self, data):
-        #print(data)
         return json.loads( data.decode('utf-16') )
 
+    # converts sqlalchemy result to python datatype,
+    # where a row is a dict and multiple rows are given as
+    # a list of dicts
     def convertRowsToListOfDict(self, rows):
         primitiveRows = []
         for row in rows:
-            #print(type(row))
             if str(type(row)) == "<class 'sqlalchemy.engine.row.Row'>":
                 dictFormat = dict(row._mapping)
-                #print(f'this {dictFormat}')
             else:
-                #print(row.__dict__)
                 dictFormat = row.__dict__
                 del dictFormat['_sa_instance_state']
             primitiveRows.append(dictFormat)
         return primitiveRows
 
-    def convertEncryptedSQLAlchemyResultToPrimitives(self, resultData):
-        primitiveS = []
-        for primitive in resultData:
-            primitive = self.cryptObj.decrypt(primitive)
-            primitiveS.append(primitive)
-        return primitiveS
+
+
+
 
 # handles all cryptographic functionalities
 class CryptographyHandler:
@@ -62,11 +60,14 @@ class CryptographyHandler:
         self.encryptedKey = encryptedKey
         self.mainAESKey = self.getMainAESKey(encryptedKey)
 
+    # get the authentication status of the password
+    # input using the constructor
     def getAuthStatus(self):
         if self.mainAESKey == None:
             return False
         return True
 
+    # get the key to decrypt the presistent database
     def getMainAESKey(self, encryptedKey):
         if encryptedKey is None:
             (key, 
@@ -80,6 +81,8 @@ class CryptographyHandler:
             key = self._decryptAESKey(encryptedKey)
         return key
 
+    # creates a new key and sets up the verification 
+    # values
     def _createNewKey(self):
         mainAESKey = os.urandom(32)
 
@@ -104,6 +107,7 @@ class CryptographyHandler:
                  hashedKey
                 )
 
+    # get the current state of the encryption/decryption values
     def getCryptValues(self):
         return (self.encryptedKey,
                 self.encryptKeyIV,
@@ -112,9 +116,12 @@ class CryptographyHandler:
                 self.hashedKey,
                 )
 
+    # get the password
     def getPassword(self):
         return self.password
 
+    # using the password verify it, and decrypt and get the actually
+    # key to decrypt the database.
     def _decryptAESKey(self, encryptedKey):
         kdf1 = self._setupPBKDF2(self.generateKeySalt)
         kdf2 = self._setupPBKDF2(self.hashKeySalt)
@@ -130,6 +137,7 @@ class CryptographyHandler:
             key = None
         return key
 
+    # given a password verify if it can decrypt the database
     def verifyPassword(self, password):
         kdf1 = self._setupPBKDF2(self.generateKeySalt)
         kdf2 = self._setupPBKDF2(self.hashKeySalt)
@@ -141,6 +149,7 @@ class CryptographyHandler:
         except cryptography.exceptions.InvalidKey as e:
             return False
 
+    # factory to setup the AES256 algorithm
     def _setupAESAlg(self, key, initVec): 
         cipher = Cipher(algorithms.AES256( key ), 
                         modes.CBC(initVec)
@@ -149,6 +158,7 @@ class CryptographyHandler:
         decryptor = cipher.decryptor()
         return encryptor, decryptor
 
+    # factory to setup the hashing algorithm of PBKDF2
     def _setupPBKDF2(self, salt):
         return PBKDF2HMAC(
                         algorithm=hashes.SHA512,
@@ -160,7 +170,6 @@ class CryptographyHandler:
     # takes in a dictionary and encrypts the value for each of its keys 
     # except uuid
     def encrypt(self, data):
-        #print(data)
         encryptIV = os.urandom(16) 
         encryptor, decryptor = self._setupAESAlg(self.mainAESKey,
                                                  encryptIV
@@ -170,7 +179,6 @@ class CryptographyHandler:
                 padder = padding.PKCS7(128).padder()
                 paddedData = padder.update(data[key]) + padder.finalize()
                 data[key] = encryptor.update(paddedData)
-                #print(data[key])
                 data[key] = encryptIV + data[key]
         return data
 
@@ -182,7 +190,6 @@ class CryptographyHandler:
                 encryptor , decryptor = self._setupAESAlg(self.mainAESKey,
                                                           data[key][0:16]
                                                         )
-                #print(key, data[key][16:])
                 paddedData = decryptor.update(data[key][16:])
                 unpadder = padding.PKCS7(128).unpadder()
                 data[key] = unpadder.update(paddedData) + unpadder.finalize()
@@ -212,6 +219,7 @@ class PresistentDatabaseHandler:
 
     # creates the tables in the presistent database
     def _createTables(self):
+        # the table contains the encrypted entries 
         class UserInfo(self.Base):
             __tablename__ = "UserInfo"
             uniqueID = Column(String(36), primary_key=True)
@@ -220,6 +228,7 @@ class PresistentDatabaseHandler:
             def __repr__(self):
                 return f"The Table that contains the encrypted binary info."
 
+        # this table only contains one row; used for encryption and decryption
         class CryptInfo(self.Base):
             __tablename__ = "CryptInfo"
             encryptedKey = Column(LargeBinary, primary_key=True)
@@ -233,13 +242,13 @@ class PresistentDatabaseHandler:
     def disconnectDB(self):
         self.engine.dispose()
 
-    #
+    # get the only row in CryptInfo table
     def getCryptInfoRow(self):
         with Session(self.engine) as session:
             cryptInfoResult = session.query(self.CryptInfo).all()
         return self.dataFormatterObj.convertRowsToListOfDict(cryptInfoResult)
 
-    #
+    # add a new row to the CryptInfo table
     def addCryptInfoEntry(self, cryptInfoEntry):
         with Session(self.engine) as session:
             session.add(self.CryptInfo(encryptedKey=cryptInfoEntry['encryptedKey'],
@@ -251,7 +260,7 @@ class PresistentDatabaseHandler:
                             )
             session.commit()
 
-    #
+    # delete the only row in CryptInfo table
     def deleteCryptInfoEntry(self):
         with Session(self.engine) as session:
             session.query(self.CryptInfo).delete()
@@ -295,6 +304,7 @@ class PresistentDatabaseHandler:
         encryptedLoginInfoPrimitiveS = self.dataFormatterObj.convertRowsToListOfDict(encryptedLoginInfoResult)
         return encryptedLoginInfoPrimitiveS
 
+    # the value from the fileInfo column in UserInfo table for a specific UUID4 primary key value
     def getFileInfoOnUUID(self, uniqueID):
         with Session(self.engine) as session:
             encryptedFileInfoResult = session.query(self.UserInfo.fileInfo)\
@@ -303,6 +313,7 @@ class PresistentDatabaseHandler:
         encryptedFileInfoPrimitiveS = self.dataFormatterObj.convertRowsToListOfDict(encryptedFileInfoResult)
         return encryptedFileInfoPrimitiveS
 
+    # get a row from the UserInfo table based on the UUID4 primary key value
     def getUserInfoOnUniqueID(self, uniqueID):
         with Session(self.engine) as session:
             encryptedUserInfoResult = session.query(self.UserInfo)\
@@ -310,12 +321,14 @@ class PresistentDatabaseHandler:
             encryptedUserInfoPrimitiveS = self.dataFormatterObj.convertRowsToListOfDict(encryptedUserInfoResult)
         return encryptedUserInfoPrimitiveS
 
+    # get all the rows fo the UserInfo table
     def getAllUserInfo(self):
         with Session(self.engine) as session:
             encryptedUserInfoResult = session.query(self.UserInfo).all()
             encryptedUserInfoPrimitiveS = self.dataFormatterObj.convertRowsToListOfDict(encryptedUserInfoResult)
         return encryptedUserInfoPrimitiveS
 
+    # get all the UUID4 primary key value from the UserInfo table
     def getAllUniqueID(self):
         with Session(self.engine) as session:
             allUniqueIDResult = session.query(self.UserInfo.uniqueID).all()
@@ -400,8 +413,6 @@ class MemoryDatabaseHandler:
         with Session(self.engine) as session:
             loginInfoRow = session.query(self.LoginInfo)\
                              .filter(self.LoginInfo.uniqueID == uniqueID).all()
-            #loginInfoRow = session.execute(queryStatement).all()
-            #print(loginInfoRow)
             loginInfoEntry = self.dataFormatterObj.convertRowsToListOfDict(loginInfoRow)[0]
         return loginInfoEntry
 

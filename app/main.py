@@ -57,11 +57,6 @@ class Icons:
                                         size=(20, 20)
                                         )
             self.entryTypeImgDict[entryType] = entryTypeImg
-        '''
-        self.entryTypeImgDict['choose...'] = ctk.CTkImage(dark_image=Image.open(f"icons/entryTypeIcon/choose.png"),
-                                                            size=(20, 20)
-                                                            )
-        '''
 
 
 
@@ -87,7 +82,7 @@ class Window(ctk.CTk):
         else:
             self.drawCreateNewDB()
 
-    #
+    # gets the current object values
     def getObjs(self):
         return {'iconObj': self.iconObj,
                 'memDBObj': self.memDBObj,
@@ -96,6 +91,7 @@ class Window(ctk.CTk):
                 'cryptObj': self.cryptObj,
                 'mainWindow': self
                }
+               
     # draws the windows to create a new sqlite
     # database if an existing one is not found
     def drawCreateNewDB(self):
