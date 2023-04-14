@@ -1,5 +1,6 @@
 import customtkinter as ctk
-from PIL import Image
+import tkinter as tk
+from PIL import ImageTk, Image
 from database import DataFormatter, PresistentDatabaseHandler, MemoryDatabaseHandler, CryptographyHandler
 from mainUIComponents import SearchFrame, ItemListFrame, RibbonFrame, ItemInformationFrame
 from toplevelUIComponents import PasswordAuthFrame, SetPasswordFrame
@@ -149,4 +150,6 @@ if __name__ == "__main__":
     ctk.set_widget_scaling(1.1)
     ctk.set_window_scaling(1.0)
     app = Window()
+    app.iconbitmap('icons/appIcon/appIcon.ico')
+    #app.iconphoto(False, ImageTk.PhotoImage(file='icons/appIcon/appIcon.png') )
     app.mainloop()
