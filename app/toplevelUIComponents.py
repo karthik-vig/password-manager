@@ -16,11 +16,14 @@ class SetPasswordFrame(ctk.CTkFrame):
     def __init__(self, parent, **kwargs):
         super().__init__(parent, **kwargs)
         self.parent = parent
+        self.objs = self.parent.getObjs()
+        self.iconObj = self.objs['iconObj']
         # configure the rows and columns
         for row in range(4):
             self.grid_rowconfigure(row, weight=1)
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=3)
+        self.grid_columnconfigure(2, weight=1)
         # label to indicate the necessary action
         self.createNewDBLabel = ctk.CTkLabel(self,
                                             text='Create a New Database')
@@ -39,13 +42,30 @@ class SetPasswordFrame(ctk.CTkFrame):
                                     columnspan=1,
                                     sticky='w'
                                     )
-        self.newPasswordEntry = ctk.CTkEntry(self)
+        self.newPasswordEntry = ctk.CTkEntry(self, 
+                                             show='*'
+                                             )
         self.newPasswordEntry.grid(row=1,
                                     column=1,
                                     rowspan=1,
                                     columnspan=1,
                                     sticky='we'
                                     )
+        # show or hide password button
+        self.showOrHidePassButton = ctk.CTkButton(self,
+                                          image=self.iconObj.showHiddenImg,
+                                          text='',
+                                          width=30,
+                                          height=20,
+                                          fg_color='#0074ff',
+                                          hover_color='#002450',
+                                          command=self.showOrHidePassAction)
+        self.showOrHidePassButton.grid(row=1,
+                                      column=2,
+                                      rowspan=1,
+                                      columnspan=1,
+                                      sticky='e'
+                                      )  
         # re-enter new password label and entry
         self.reenterPasswordLabel = ctk.CTkLabel(self,
                                                  text='Re-Enter the New Password: ')
@@ -55,7 +75,9 @@ class SetPasswordFrame(ctk.CTkFrame):
                                       columnspan=1,
                                       sticky='w'
                                       )
-        self.reenterPasswordEntry = ctk.CTkEntry(self)
+        self.reenterPasswordEntry = ctk.CTkEntry(self,
+                                                show='*'
+                                                )
         self.reenterPasswordEntry.grid(row=2,
                                       column=1,
                                       rowspan=1,
@@ -143,6 +165,18 @@ class SetPasswordFrame(ctk.CTkFrame):
             reject = True
         return reject, rejectionMsg
 
+    # shows or hides password
+    def showOrHidePassAction(self):
+        currentShowState = self.newPasswordEntry.cget('show')
+        if currentShowState == '*':
+            self.newPasswordEntry.configure(show='')
+            self.reenterPasswordEntry.configure(show='')
+            self.showOrHidePassButton.configure(image=self.iconObj.notShowHiddenImg)
+        else:
+            self.newPasswordEntry.configure(show='*')
+            self.reenterPasswordEntry.configure(show='*')
+            self.showOrHidePassButton.configure(image=self.iconObj.showHiddenImg)
+
 
 
 
@@ -155,10 +189,13 @@ class PasswordAuthFrame(ctk.CTkFrame):
     def __init__(self, parent, **kwargs):
         super().__init__(parent, **kwargs)
         self.parent = parent
+        self.objs = self.parent.getObjs()
+        self.iconObj = self.objs['iconObj']
         self.grid_rowconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1)
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=3)
+        self.grid_columnconfigure(2, weight=1)
         # create and place the label in the grid
         self.passwordLabel = ctk.CTkLabel(self,
                                           text="Enter Password: "
@@ -171,6 +208,7 @@ class PasswordAuthFrame(ctk.CTkFrame):
                                 )
         # create and place the password entry box in the grid
         self.passwordEntry = ctk.CTkEntry(self,
+                                          show='*',
                                           height=10,
                                           width=0
                                           )
@@ -181,6 +219,21 @@ class PasswordAuthFrame(ctk.CTkFrame):
                                 sticky='we'
                                 )
         self.passwordEntry.bind('<Return>', self.submitPassword)
+        # show or hide password button
+        self.showOrHidePassButton = ctk.CTkButton(self,
+                                          image=self.iconObj.showHiddenImg,
+                                          text='',
+                                          width=30,
+                                          height=20,
+                                          fg_color='#0074ff',
+                                          hover_color='#002450',
+                                          command=self.showOrHidePassAction)
+        self.showOrHidePassButton.grid(row=0,
+                                      column=2,
+                                      rowspan=1,
+                                      columnspan=1,
+                                      sticky='e'
+                                      )                                        
         # create and place the password submit button in the grid
         self.enterPasswordButton = ctk.CTkButton(self,
                                                  text='Submit',
@@ -231,6 +284,16 @@ class PasswordAuthFrame(ctk.CTkFrame):
             self.parent.passwordAuthFrame.grid_forget()
             self.parent.drawContent()
 
+    # sets to show or hide text value in the entry box
+    def showOrHidePassAction(self):
+        currentShowState = self.passwordEntry.cget('show')
+        if currentShowState == '*':
+            self.passwordEntry.configure(show='')
+            self.showOrHidePassButton.configure(image=self.iconObj.notShowHiddenImg)
+        else:
+            self.passwordEntry.configure(show='*')
+            self.showOrHidePassButton.configure(image=self.iconObj.showHiddenImg)
+
 
 
 
@@ -248,11 +311,13 @@ class ResetPasswordToplevel(ctk.CTkToplevel):
         self.title('Set New Password')
         self.grab_set()
         self.objs = objs
+        self.iconObj = self.objs['iconObj']
         # configure the rows and columns
         for row in range(4):
             self.grid_rowconfigure(row, weight=1)
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=3)
+        self.grid_columnconfigure(2, weight=1)
         # enter current password label and entry
         self.currentPasswordLabel = ctk.CTkLabel(self,
                                                  text='Enter Current Password: ')
@@ -262,13 +327,30 @@ class ResetPasswordToplevel(ctk.CTkToplevel):
                                       columnspan=1,
                                       sticky='w'
                                       )
-        self.currentPasswordEntry = ctk.CTkEntry(self)
+        self.currentPasswordEntry = ctk.CTkEntry(self,
+                                                 show='*'
+                                                 )
         self.currentPasswordEntry.grid(row=0,
                                       column=1,
                                       rowspan=1,
                                       columnspan=1,
                                       sticky='we'
                                       )
+        # show or hide password button
+        self.showOrHidePassButton = ctk.CTkButton(self,
+                                          image=self.iconObj.showHiddenImg,
+                                          text='',
+                                          width=30,
+                                          height=20,
+                                          fg_color='#0074ff',
+                                          hover_color='#002450',
+                                          command=self.showOrHidePassAction)
+        self.showOrHidePassButton.grid(row=0,
+                                      column=2,
+                                      rowspan=1,
+                                      columnspan=1,
+                                      sticky='e'
+                                      ) 
         # enter new password label and entry
         self.newPasswordLabel = ctk.CTkLabel(self,
                                              text='Enter the New Password: ')
@@ -278,7 +360,9 @@ class ResetPasswordToplevel(ctk.CTkToplevel):
                                     columnspan=1,
                                     sticky='w'
                                     )
-        self.newPasswordEntry = ctk.CTkEntry(self)
+        self.newPasswordEntry = ctk.CTkEntry(self,
+                                             show='*'
+                                             )
         self.newPasswordEntry.grid(row=1,
                                     column=1,
                                     rowspan=1,
@@ -294,7 +378,9 @@ class ResetPasswordToplevel(ctk.CTkToplevel):
                                       columnspan=1,
                                       sticky='w'
                                       )
-        self.reenterPasswordEntry = ctk.CTkEntry(self)
+        self.reenterPasswordEntry = ctk.CTkEntry(self,
+                                                 show='*'
+                                                 )
         self.reenterPasswordEntry.grid(row=2,
                                       column=1,
                                       rowspan=1,
@@ -418,6 +504,20 @@ class ResetPasswordToplevel(ctk.CTkToplevel):
             reject = True
         return reject, rejectionMsg
 
+    # sets to show or hide text value in the entry box
+    def showOrHidePassAction(self):
+        currentShowState = self.currentPasswordEntry.cget('show')
+        if currentShowState == '*':
+            self.currentPasswordEntry.configure(show='')
+            self.newPasswordEntry.configure(show='')
+            self.reenterPasswordEntry.configure(show='')
+            self.showOrHidePassButton.configure(image=self.iconObj.notShowHiddenImg)
+        else:
+            self.currentPasswordEntry.configure(show='*')
+            self.newPasswordEntry.configure(show='*')
+            self.reenterPasswordEntry.configure(show='*')
+            self.showOrHidePassButton.configure(image=self.iconObj.showHiddenImg)
+
 
 
 
@@ -434,17 +534,19 @@ class AddNewEntryToplevel(ctk.CTkToplevel):
         self.grab_set()
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=7)
+        self.grid_columnconfigure(2, weight=1)
         for idx in  range(9):
             self.grid_rowconfigure(idx, weight=1)
         self.grid_rowconfigure(6, weight=4)
         self.objs = objs
+        self.iconObj = self.objs['iconObj']
         # initialize variables
         self.selectTypeBoxValue = None
         self.file = None
         # add text entry type widgets and it's labels
         fieldNameList = ['entryName',
                         'userName',
-                        'password',
+                        #'password',
                         'email',
                         'url',
                         ]
@@ -465,7 +567,7 @@ class AddNewEntryToplevel(ctk.CTkToplevel):
             entry.grid(row=row,
                         column=1,
                         rowspan=1,
-                        columnspan=1,
+                        columnspan=2,
                         sticky='ew',
                         padx=5,
                         )
@@ -474,6 +576,43 @@ class AddNewEntryToplevel(ctk.CTkToplevel):
                      "entry": entry
                      }
             self.fieldDict[f"{fieldName}"] = field
+        # the label and entry for password
+        passwordLabel = ctk.CTkLabel(self, 
+                                text="Password: ",
+                                height=40,
+                                width=0)
+        passwordLabel.grid(row=4,
+                        column=0,
+                        rowspan=1,
+                        columnspan=1,
+                        )
+        passwordEntry = ctk.CTkEntry(self,
+                                    show='*',
+                                    height=40,
+                                    width=0
+                                    )
+        passwordEntry.grid(row=4,
+                        column=1,
+                        rowspan=1,
+                        columnspan=1,
+                        sticky='ew',
+                        padx=5,
+                        )
+        # show or hide password button
+        self.showOrHidePassButton = ctk.CTkButton(self,
+                                          image=self.iconObj.showHiddenImg,
+                                          text='',
+                                          width=30,
+                                          height=40,
+                                          fg_color='#0074ff',
+                                          hover_color='#002450',
+                                          command=self.showOrHidePassAction)
+        self.showOrHidePassButton.grid(row=4,
+                                      column=2,
+                                      rowspan=1,
+                                      columnspan=1,
+                                      sticky='we'
+                                      )
         # add label and widget for selecting type of entry
         self.entryTypeList = ['Choose...',
                                 'Bank',
@@ -529,7 +668,7 @@ class AddNewEntryToplevel(ctk.CTkToplevel):
         notesEntry.grid(row=6,
                         column=1,
                         rowspan=1,
-                        columnspan=1,
+                        columnspan=2,
                         sticky='nsew',
                         padx=5,
                         )
@@ -563,6 +702,9 @@ class AddNewEntryToplevel(ctk.CTkToplevel):
                         rowspan=1,
                         columnspan=1)
         # add the labels and widgets into a dict data structure; to keep track of them
+        self.fieldDict['password'] = {'label': passwordLabel,
+                                      'entry': passwordEntry
+                                      }
         self.fieldDict['entryType'] = {'label': typeLabel,
                                   'entry': typeSelectBox
                                  }
@@ -603,3 +745,13 @@ class AddNewEntryToplevel(ctk.CTkToplevel):
                                                                 })
         self.objs['presistentDBObj'].addUserInfoEntry(encryptedUserInfoEntry)
         self.destroy()
+
+    # sets to show or hide text value in the entry box
+    def showOrHidePassAction(self):
+        currentShowState = self.fieldDict['password']['entry'].cget('show')
+        if currentShowState == '*':
+            self.fieldDict['password']['entry'].configure(show='')
+            self.showOrHidePassButton.configure(image=self.iconObj.notShowHiddenImg)
+        else:
+            self.fieldDict['password']['entry'].configure(show='*')
+            self.showOrHidePassButton.configure(image=self.iconObj.showHiddenImg)

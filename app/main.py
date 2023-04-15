@@ -34,6 +34,12 @@ class Icons:
         self.syncEntryImg = ctk.CTkImage(dark_image=Image.open('icons/buttonIcon/syncEntry.png'),
                                         size=(20, 20)
                                         )
+        self.showHiddenImg = ctk.CTkImage(dark_image=Image.open('icons/buttonIcon/show.png'),
+                                        size=(20, 20)
+                                        )
+        self.notShowHiddenImg = ctk.CTkImage(dark_image=Image.open('icons/buttonIcon/notShow.png'),
+                                        size=(20, 20)
+                                        )
 
     # gets and sets the entry type icons
     def getEntryTypeIcons(self):

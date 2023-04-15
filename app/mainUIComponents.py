@@ -100,13 +100,15 @@ class RibbonFrame(ctk.CTkFrame):
 class ItemInformationFrame(ctk.CTkFrame):
     def __init__(self, parent, objs, **kwargs):
         super().__init__(parent, **kwargs)
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_columnconfigure(1, weight=5)
-        self.grid_columnconfigure(2, weight=2)
+        self.grid_columnconfigure(0, weight=2)
+        self.grid_columnconfigure(1, weight=9)
+        self.grid_columnconfigure(2, weight=1)
+        self.grid_columnconfigure(3, weight=1)
         for idx in  range(9):
             self.grid_rowconfigure(idx, weight=1)
         self.grid_rowconfigure(6, weight=4)
         self.objs = objs
+        self.iconObj = self.objs['iconObj']
         self.uniqueID = None
         self.file = None
         self.filename = None
@@ -114,7 +116,7 @@ class ItemInformationFrame(ctk.CTkFrame):
         # add text entry type widgets and it's labels
         fieldNameList = ['entryName',
                         'userName',
-                        'password',
+                        #'password',
                         'email',
                         'url',
                         ]
@@ -135,7 +137,7 @@ class ItemInformationFrame(ctk.CTkFrame):
             entry.grid(row=row,
                         column=1,
                         rowspan=1,
-                        columnspan=2,
+                        columnspan=3,
                         sticky='ew',
                         padx=5,
                         )
@@ -144,6 +146,43 @@ class ItemInformationFrame(ctk.CTkFrame):
                      "entry": entry
                      }
             self.fieldDict[f"{fieldName}"] = field
+        # the label and entry for password
+        passwordLabel = ctk.CTkLabel(self, 
+                                text="Password: ",
+                                height=40,
+                                width=0)
+        passwordLabel.grid(row=4,
+                        column=0,
+                        rowspan=1,
+                        columnspan=1,
+                        )
+        passwordEntry = ctk.CTkEntry(self,
+                                    show='*',
+                                    height=40,
+                                    width=0
+                                    )
+        passwordEntry.grid(row=4,
+                        column=1,
+                        rowspan=1,
+                        columnspan=2,
+                        sticky='ew',
+                        padx=5,
+                        )
+        # show or hide password button
+        self.showOrHidePassButton = ctk.CTkButton(self,
+                                          image=self.iconObj.showHiddenImg,
+                                          text='',
+                                          width=30,
+                                          height=40,
+                                          fg_color='#0074ff',
+                                          hover_color='#002450',
+                                          command=self.showOrHidePassAction)
+        self.showOrHidePassButton.grid(row=4,
+                                      column=3,
+                                      rowspan=1,
+                                      columnspan=1,
+                                      sticky='we'
+                                      )  
         # add label and widget for selecting type of entry
         self.entryTypeList = ['Choose...',
                                 'Bank',
@@ -199,7 +238,7 @@ class ItemInformationFrame(ctk.CTkFrame):
         notesEntry.grid(row=6,
                         column=1,
                         rowspan=1,
-                        columnspan=2,
+                        columnspan=3,
                         sticky='nsew',
                         padx=5,
                         )
@@ -243,10 +282,10 @@ class ItemInformationFrame(ctk.CTkFrame):
                                         command=self.addNewFileAction
                                         )
         modifyFileButton.grid(row=7,
-                        column=2,
+                        column=3,
                         rowspan=1,
                         columnspan=1,
-                        sticky='e')
+                        sticky='w')
         # add the button to submit the modified details into the database
         modifyButton = ctk.CTkButton(self,
                                   text='Modify',
@@ -272,6 +311,9 @@ class ItemInformationFrame(ctk.CTkFrame):
                         columnspan=1,
                         sticky='w')
         # add the labels and widgets into a dict data structure; to keep track of them
+        self.fieldDict['password'] = {'label': passwordLabel,
+                                      'entry': passwordEntry
+                                      }
         self.fieldDict['entryType'] = {'label': typeLabel,
                                   'entry': typeSelectBox
                                  }
@@ -386,6 +428,16 @@ class ItemInformationFrame(ctk.CTkFrame):
         self.filename = None
         self.filedata = None
         self.fieldDict['file']['entry'].configure(text=f"{self.filename}")
+
+    # show or hide the password entry
+    def showOrHidePassAction(self):
+        currentShowState = self.fieldDict['password']['entry'].cget('show')
+        if currentShowState == '*':
+            self.fieldDict['password']['entry'].configure(show='')
+            self.showOrHidePassButton.configure(image=self.iconObj.notShowHiddenImg)
+        else:
+            self.fieldDict['password']['entry'].configure(show='*')
+            self.showOrHidePassButton.configure(image=self.iconObj.showHiddenImg)
 
 
 
