@@ -81,6 +81,8 @@ class SyncFrame(ctk.CTkFrame):
         externalDBLocation = tk.filedialog.askopenfilename()
         if not externalDBLocation:
             return
+        else:
+            externalDBLocation = externalDBLocation[0:-3]
         # based on operationMode, set the fromDB and toDB
         # along with their CryptObjs
         if self.operationMode == 'export':
