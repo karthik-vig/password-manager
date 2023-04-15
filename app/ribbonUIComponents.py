@@ -121,22 +121,37 @@ class SyncFrame(ctk.CTkFrame):
                 return
         # call the necessary sync action as per selection
         if self.operation == 'Add New Entries':
-            self.copyNewEntries(fromDBHandler, toDBHandler)
+            self.copyNewEntries(fromDBHandler, 
+                                toDBHandler, 
+                                fromDBCryptObj, 
+                                toDBCryptObj
+                                )
         elif self.operation == 'Delete Missing Entries':
             self.deleteEntries(fromDBHandler, toDBHandler)
         elif self.operation == 'Conform Modified Entries':
-            self.updateEntries(fromDBHandler, toDBHandler, fromDBCryptObj, toDBCryptObj)
+            self.updateEntries(fromDBHandler, 
+                               toDBHandler, 
+                               fromDBCryptObj, 
+                               toDBCryptObj
+                               )
         tk.messagebox.showwarning(title = 'Success',
                                   message = 'The Sync Action was successful'
                                  )
+        self.objs['mainWindow'].searchFrame.searchAction()
 
     # copies new entries in fromDB to toDB
-    def copyNewEntries(self, fromDBHandler, toDBHandler):
+    def copyNewEntries(self, fromDBHandler, toDBHandler, fromDBCryptObj, toDBCryptObj):
         fromDBAllUniqueIDS = self.getUniqueIDS(fromDBHandler)
         toDBAllUniqueIDS = self.getUniqueIDS(toDBHandler)
         newEntriesUniqueIDS = fromDBAllUniqueIDS - toDBAllUniqueIDS
+        insertIntoMemDB = True if toDBHandler == self.objs['presistentDBObj'] else False
         for uniqueID in newEntriesUniqueIDS:
-            encryptedUserInfoPrimitive = fromDBHandler.getUserInfoOnUniqueID(uniqueID)[0]
+            #encryptedUserInfoPrimitive = fromDBHandler.getUserInfoOnUniqueID(uniqueID)[0]
+            userInfoPrimitive = self.decryptRow(fromDBCryptObj, fromDBHandler, uniqueID)
+            if insertIntoMemDB:
+                loginInfoEntry = self.objs['dataFormatterObj'].convertToPythonType(userInfoPrimitive['loginInfo'])
+                self.objs['memDBObj'].addNewEntry(loginInfoEntry)
+            encryptedUserInfoPrimitive = toDBCryptObj.encrypt(userInfoPrimitive)
             toDBHandler.addUserInfoEntry(encryptedUserInfoPrimitive)
 
     # entries in toDB but not in fromDB are deleted from toDB        
@@ -144,8 +159,11 @@ class SyncFrame(ctk.CTkFrame):
         fromDBAllUniqueIDS = self.getUniqueIDS(fromDBHandler)
         toDBAllUniqueIDS = self.getUniqueIDS(toDBHandler)
         deleteEntriesUniqueIDS = toDBAllUniqueIDS - fromDBAllUniqueIDS
+        deleteFromMemDB = True if toDBHandler == self.objs['presistentDBObj'] else False
         for uniqueID in deleteEntriesUniqueIDS:
             toDBHandler.deleteUserInfoEntry(uniqueID)
+            if deleteFromMemDB:
+                self.objs['memDBObj'].deleteEntry(uniqueID)
 
     # if toDB has entries with same uniqueID as the fromDB but their 
     # values don't match; then the values of the fromDB are copied to
@@ -154,10 +172,14 @@ class SyncFrame(ctk.CTkFrame):
         fromDBAllUniqueIDS = self.getUniqueIDS(fromDBHandler)
         toDBAllUniqueIDS = self.getUniqueIDS(toDBHandler)
         commonUniqueIDS = fromDBAllUniqueIDS.intersection(toDBAllUniqueIDS)
+        updateMemDB = True if toDBHandler == self.objs['presistentDBObj'] else False
         for uniqueID in commonUniqueIDS:
             fromDBUserInfoPrimitive = self.decryptRow(fromDBCryptObj, fromDBHandler, uniqueID)
             toDBUserInfoPrimitive = self.decryptRow(toDBCryptObj, toDBHandler, uniqueID)
             if fromDBUserInfoPrimitive != toDBUserInfoPrimitive:
+                if updateMemDB:
+                    loginInfoEntry = self.objs['dataFormatterObj'].convertToPythonType(fromDBUserInfoPrimitive['loginInfo'])
+                    self.objs['memDBObj'].modifyLoginInfoEntry(loginInfoEntry)
                 encryptedFromDBUserInfoPrimitive = toDBCryptObj.encrypt(fromDBUserInfoPrimitive)
                 toDBHandler.updateUserInfoEntry({'uniqueID': uniqueID,
                                                  'loginInfo': encryptedFromDBUserInfoPrimitive['loginInfo'],
