@@ -171,29 +171,31 @@ class CryptographyHandler:
     # takes in a dictionary and encrypts the value for each of its keys 
     # except uuid
     def encrypt(self, data):
-        encryptIV = os.urandom(16) 
-        encryptor, decryptor = self._setupAESAlg(self.mainAESKey,
-                                                 encryptIV
-                                                )
         for key in data.keys():
-            if key != 'uniqueID' and data[key] != None:
-                padder = padding.PKCS7(128).padder()
-                paddedData = padder.update(data[key]) + padder.finalize()
-                data[key] = encryptor.update(paddedData)
-                data[key] = encryptIV + data[key]
+            if key == 'uniqueID' or data[key] == None:
+                continue
+            encryptIV = os.urandom(16) 
+            encryptor, decryptor = self._setupAESAlg(self.mainAESKey,
+                                                     encryptIV
+                                                    )
+            padder = padding.PKCS7(128).padder()
+            paddedData = padder.update(data[key]) + padder.finalize()
+            data[key] = encryptor.update(paddedData) + encryptor.finalize()
+            data[key] = encryptIV + data[key]
         return data
 
     # takes in a dictionary and decrypts the value for each of its keys
     # except uuid
     def decrypt(self, data):
         for key in data.keys():
-            if key != 'uniqueID' and data[key] != None:
-                encryptor , decryptor = self._setupAESAlg(self.mainAESKey,
-                                                          data[key][0:16]
-                                                        )
-                paddedData = decryptor.update(data[key][16:])
-                unpadder = padding.PKCS7(128).unpadder()
-                data[key] = unpadder.update(paddedData) + unpadder.finalize()
+            if key == 'uniqueID' or data[key] == None:
+                continue
+            encryptor , decryptor = self._setupAESAlg(self.mainAESKey,
+                                                        data[key][0:16]
+                                                    )
+            paddedData = decryptor.update(data[key][16:]) + decryptor.finalize()
+            unpadder = padding.PKCS7(128).unpadder()
+            data[key] = unpadder.update(paddedData) + unpadder.finalize()
         return data
 
 
