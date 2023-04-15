@@ -22,6 +22,7 @@ class DataFormatter:
 
     # converts bytes back into python dict/list of dict
     def convertToPythonType(self, data):
+        a = data.decode('utf-16')
         return json.loads( data.decode('utf-16') )
 
     # converts sqlalchemy result to python datatype,
@@ -204,10 +205,9 @@ class PresistentDatabaseHandler:
     def __init__(self, databaseName=None):
         if not databaseName:
             databaseName = 'userData'
-            databasePath = pathlib.Path(__file__).parent.resolve()
+            databasePath = pathlib.Path(__file__).parents[1]
             databasePath = str(databasePath).replace('\\', '/')
-            upOneFolderIdx = databasePath.rfind('/')
-            databasePath = databasePath[:upOneFolderIdx] + '/' + databaseName
+            databasePath = databasePath + '/' + databaseName
         else:
             databasePath = databaseName
         self.engine = create_engine(f"sqlite+pysqlite:///{databasePath}.db")

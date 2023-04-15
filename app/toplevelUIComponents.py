@@ -5,6 +5,7 @@ from database import PresistentDatabaseHandler, CryptographyHandler
 import uuid
 import string
 import os
+import pathlib
 
 
 
@@ -426,7 +427,10 @@ class ResetPasswordToplevel(ctk.CTkToplevel):
     # renames the temporary database to the name of the current database.
     def copyPersistentDatabase(self, newPassword):
         # create new cryptObj and presistentDBObj
-        presistentDBObj = PresistentDatabaseHandler('userDataTmp')
+        parentPath = str( pathlib.Path(__file__).parents[1] )
+        parentPath = parentPath.replace('\\', '/')
+        tmpDatabasePath = parentPath + '/' + 'userDataTmp'
+        presistentDBObj = PresistentDatabaseHandler(tmpDatabasePath)
         cryptObj = CryptographyHandler(newPassword)
         (encryptedKey,
         encryptKeyIV,
@@ -457,13 +461,13 @@ class ResetPasswordToplevel(ctk.CTkToplevel):
         del presistentDBObj
         del self.objs['mainWindow'].presistentDBObj
         del self.objs['presistentDBObj']
-        if os.path.exists('userData.db'):
-            os.remove('userData.db')
-            os.rename('userDataTmp.db', 'userData.db')
+        pathOfCurrentUserDataDB = parentPath + '/' + 'userData.db'
+        if os.path.exists(pathOfCurrentUserDataDB):
+            os.remove(pathOfCurrentUserDataDB)
+            os.rename(tmpDatabasePath + '.db', pathOfCurrentUserDataDB)
         else:
-            os.remove('userDataTmp.db')
-        presistentDBObj= PresistentDatabaseHandler()
-        self.objs['mainWindow'].presistentDBObj = presistentDBObj
+            os.remove(tmpDatabasePath)
+        self.objs['mainWindow'].presistentDBObj = PresistentDatabaseHandler()
         self.objs['mainWindow'].removeAllContent()
         self.objs['mainWindow'].drawContent()
 
