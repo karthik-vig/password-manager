@@ -744,6 +744,7 @@ class AddNewEntryToplevel(ctk.CTkToplevel):
                                                                 'fileInfo': fileData
                                                                 })
         self.objs['presistentDBObj'].addUserInfoEntry(encryptedUserInfoEntry)
+        self.objs['mainWindow'].searchFrame.searchAction()
         self.destroy()
 
     # sets to show or hide text value in the entry box
