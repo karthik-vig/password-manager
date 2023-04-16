@@ -726,7 +726,10 @@ class AddNewEntryToplevel(ctk.CTkToplevel):
     def chooseFile(self):
         self.file = ctk.filedialog.askopenfile(parent=self, mode='rb', initialdir='/')
         if self.file:
-            self.fieldDict['file']['entry'].configure(text=f"{self.file.name.split('/')[-1][:50]}")
+            filename = f"{self.file.name.split('/')[-1][:50]}"
+        else:
+            filename = 'Choose File...'
+        self.fieldDict['file']['entry'].configure(text=filename)
 
     # the action to create a new database entry (row) based on the entered values
     def addAction(self):
