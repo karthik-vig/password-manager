@@ -60,3 +60,6 @@ A complelete snapshot of packages is as follows:
 
 # Usage:
 
+# Implementation of Security:
+
+The security standard used is AES256
