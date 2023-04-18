@@ -159,5 +159,4 @@ if __name__ == "__main__":
     ctk.set_window_scaling(1.0)
     app = Window()
     app.iconbitmap('icons/appIcon/appIcon.ico')
-    #app.iconphoto(False, ImageTk.PhotoImage(file='icons/appIcon/appIcon.png') )
     app.mainloop()
